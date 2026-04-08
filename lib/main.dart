@@ -1,8 +1,7 @@
+import 'package:app_blocker/screens/home_page.dart';
 import 'package:app_blocker/welcome_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
-import 'package:floaty_nav_bar/floaty_nav_bar.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:line_icons/line_icons.dart';
 // void main() {
@@ -21,6 +20,8 @@ void main() => runApp(
 );
 
 class Example extends StatefulWidget {
+  const Example({super.key});
+
   @override
   _ExampleState createState() => _ExampleState();
 }
@@ -31,11 +32,11 @@ class _ExampleState extends State<Example> {
     fontSize: 30,
     fontWeight: FontWeight.w600,
   );
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text('Home', style: optionStyle),
-    Text('Likes', style: optionStyle),
+  static List<Widget> _widgetOptions = <Widget>[
+    HomePage(),
+    HomePage(),
     Text('Search', style: optionStyle),
-    Text('Profile', style: optionStyle),
+    HomePage(),
   ];
 
   @override
@@ -43,7 +44,7 @@ class _ExampleState extends State<Example> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(elevation: 20, title: const Text('GoogleNavBar')),
-      body: Center(child: _widgetOptions.elementAt(_selectedIndex)),
+      body: _widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -66,8 +67,8 @@ class _ExampleState extends State<Example> {
               color: Colors.black,
               tabs: [
                 GButton(icon: LineIcons.home, text: 'Home'),
-                GButton(icon: LineIcons.heart, text: 'Likes'),
-                GButton(icon: LineIcons.search, text: 'Search'),
+                // GButton(icon: LineIcons.heart, text: 'Likes'),
+                // GButton(icon: LineIcons.search, text: 'Search'),
                 GButton(icon: LineIcons.user, text: 'Profile'),
               ],
               selectedIndex: _selectedIndex,
