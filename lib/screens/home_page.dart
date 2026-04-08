@@ -1,5 +1,8 @@
+import 'package:app_blocker/components/card.dart';
+import 'package:app_blocker/components/card2.dart';
 import 'package:app_blocker/constants/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:line_icons/line_icons.dart';
 
 class HomePage extends StatefulWidget {
@@ -47,6 +50,20 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                     ),
+                    Flex(
+                      direction: Axis.horizontal,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Welcome",
+                          style: TextStyle(fontSize: 40, color: color.bgColor),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      "You’re in control. Stayfocused now!",
+                      style: TextStyle(fontSize: 25, color: color.colorText2),
+                    ),
                   ],
                 ),
                 height: 200,
@@ -61,7 +78,7 @@ class _HomePageState extends State<HomePage> {
               ),
               Container(
                 decoration: BoxDecoration(color: color.bgColor),
-                height: 200,
+
                 width: double.infinity,
                 child: Column(
                   children: [
@@ -81,14 +98,36 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     Container(
-                      height: 100,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(20),
-                          topRight: Radius.circular(20),
-                        ),
+                      child: Column(
+                        children: [
+                          Flex(
+                            direction: Axis.horizontal,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            spacing: 5,
+                            children: [
+                              CardBox(
+                                Color: const Color.fromARGB(255, 204, 1, 1),
+                                title: "Strict Mode",
+                                icon: Icons.lock,
+                                subtitle: "lock the entire phone",
+                              ),
+                              CardBox(
+                                Color: color.btnColor,
+                                title: "Anti-Scroll",
+                                icon: Icons.phone_android,
+                                subtitle: "block short videos only",
+                              ),
+                            ],
+                          ),
+                          Gap(5),
+                          CardBox2(
+                            Color: const Color.fromARGB(255, 50, 157, 223),
+                            title: "Session Mode",
+                            icon: Icons.phone_android,
+                            subtitle:
+                                "Controll when and which apps are blocked",
+                          ),
+                        ],
                       ),
                     ),
                   ],
