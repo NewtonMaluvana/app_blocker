@@ -30,7 +30,7 @@ class _HomePageState extends State<HomePage> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Container(
-                          width: 200,
+                          width: 150,
                           padding: EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             color: Colors.black,
@@ -60,9 +60,20 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                     ),
-                    Text(
-                      "You’re in control. Stayfocused now!",
-                      style: TextStyle(fontSize: 25, color: color.colorText2),
+                    Flex(
+                      direction: Axis.horizontal,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            "You’re in control. Stayfocused now!",
+                            style: TextStyle(
+                              fontSize: 25,
+                              color: color.colorText2,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -121,9 +132,9 @@ class _HomePageState extends State<HomePage> {
                           ),
                           Gap(5),
                           CardBox2(
-                            Color: const Color.fromARGB(255, 50, 157, 223),
+                            Color: const Color.fromARGB(255, 224, 169, 5),
                             title: "Session Mode",
-                            icon: Icons.phone_android,
+                            icon: Icons.timer,
                             subtitle:
                                 "Controll when and which apps are blocked",
                           ),

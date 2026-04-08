@@ -33,7 +33,7 @@ class _CardBoxState extends State<CardBox> {
     }
     return Container(
       padding: EdgeInsets.all(5),
-      width: width * 0.49,
+      width: width * 0.45,
       height: width * 0.49,
       decoration: BoxDecoration(
         color: widget.Color,
@@ -52,11 +52,17 @@ class _CardBoxState extends State<CardBox> {
               fontWeight: FontWeight.w700,
             ),
           ),
-          Icon(widget.icon, size: iconsize, color: color.bgColor2),
+          Flex(
+            direction: Axis.horizontal,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Icon(widget.icon, size: iconsize, color: color.bgColor2),
+            ],
+          ),
           Text(
             widget.subtitle,
             textAlign: TextAlign.center,
-            style: TextStyle(color: color.colorText2, fontSize: 20),
+            style: TextStyle(color: color.colorText, fontSize: 15),
           ),
         ],
       ),

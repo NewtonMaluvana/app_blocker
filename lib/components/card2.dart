@@ -33,7 +33,7 @@ class _CardBoxState extends State<CardBox2> {
     }
     return Container(
       padding: EdgeInsets.all(5),
-      width: width * 0.99,
+      width: width * 0.9,
       height: width * 0.5,
       decoration: BoxDecoration(
         color: widget.Color,
@@ -48,7 +48,7 @@ class _CardBoxState extends State<CardBox2> {
             widget.title,
             style: TextStyle(
               color: color.colorText,
-              fontSize: 20,
+              fontSize: 24,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -56,7 +56,7 @@ class _CardBoxState extends State<CardBox2> {
           Text(
             widget.subtitle,
             textAlign: TextAlign.center,
-            style: TextStyle(color: color.colorText2, fontSize: 20),
+            style: TextStyle(color: color.colorText, fontSize: 15),
           ),
         ],
       ),
