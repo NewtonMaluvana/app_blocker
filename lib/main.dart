@@ -1,6 +1,5 @@
 import 'package:app_blocker/screens/home_page.dart';
-import 'package:app_blocker/welcome_page.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:app_blocker/utils/permissin_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:line_icons/line_icons.dart';
@@ -8,16 +7,7 @@ import 'package:line_icons/line_icons.dart';
 //   runApp(WelcomePage());
 // }
 
-void main() => runApp(
-  MaterialApp(
-    builder: (context, child) {
-      return Directionality(textDirection: TextDirection.ltr, child: child!);
-    },
-    title: 'GNav',
-    theme: ThemeData(primaryColor: Colors.grey[800]),
-    home: Example(),
-  ),
-);
+void main() => runApp(MaterialApp(home: Example()));
 
 class Example extends StatefulWidget {
   const Example({super.key});
@@ -32,7 +22,7 @@ class _ExampleState extends State<Example> {
     fontSize: 30,
     fontWeight: FontWeight.w600,
   );
-  static List<Widget> _widgetOptions = <Widget>[
+  static final List<Widget> _widgetOptions = <Widget>[
     HomePage(),
     HomePage(),
     Text('Search', style: optionStyle),
@@ -75,6 +65,7 @@ class _ExampleState extends State<Example> {
               onTabChange: (index) {
                 setState(() {
                   _selectedIndex = index;
+                  // ← call it here so dialog shows on launch
                 });
               },
             ),

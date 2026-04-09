@@ -7,7 +7,7 @@ class CardBox extends StatefulWidget {
   final String subtitle;
   final Color;
 
-  CardBox({
+  const CardBox({
     super.key,
     required this.title,
     required this.icon,
@@ -33,7 +33,7 @@ class _CardBoxState extends State<CardBox> {
     }
     return Container(
       padding: EdgeInsets.all(5),
-      width: width * 0.45,
+      width: width * 0.49,
       height: width * 0.49,
       decoration: BoxDecoration(
         color: widget.Color,

@@ -1,6 +1,5 @@
 import 'package:app_blocker/constants/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class WelcomePage extends StatefulWidget {
   const WelcomePage({super.key});
