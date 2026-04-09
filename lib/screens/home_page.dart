@@ -83,7 +83,7 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         Expanded(
                           child: Text(
-                            "You’re in control. Stayfocused now!",
+                            "You’re in control. Stay focused now!",
                             style: TextStyle(
                               fontSize: 25,
                               color: color.colorText2,
@@ -101,6 +101,7 @@ class _HomePageState extends State<HomePage> {
                 width: double.infinity,
                 child: Column(
                   children: [
+                    ///start of the features card row
                     Padding(
                       padding: const EdgeInsets.only(left: 8.0, top: 30),
                       child: Flex(
@@ -153,11 +154,30 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
+              //end of the features card row
 
+              //start of the session card row
+              Padding(
+                padding: const EdgeInsets.only(left: 8.0, top: 30),
+                child: Flex(
+                  direction: Axis.horizontal,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Lock sessions",
+                      style: TextStyle(
+                        fontSize: 26,
+                        color: color.colorText2,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               SessionCard(
                 date: "2023-10-10",
                 Time: "10:00 AM",
-                incons: Icons.facebook_outlined,
+                incons: Icons.facebook,
               ),
             ],
           ),

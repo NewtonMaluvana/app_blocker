@@ -2,6 +2,7 @@ import 'package:app_blocker/constants/colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:linear_progress_bar/linear_progress_bar.dart';
 
 class SessionCard extends StatefulWidget {
   final String date;
@@ -72,7 +73,7 @@ class _SessionCardState extends State<SessionCard> {
                     padding: EdgeInsets.symmetric(vertical: 2, horizontal: 20),
                     decoration: BoxDecoration(
                       border: Border.all(color: color.btnColor),
-
+                      color: const Color.fromARGB(255, 231, 220, 238),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(widget.Time),
@@ -93,8 +94,56 @@ class _SessionCardState extends State<SessionCard> {
           ),
 
           //end of first row of the card
-          Text(widget.Time),
-          Icon(widget.incons),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: LinearProgressBar(
+              maxSteps: 10000,
+              progressType: ProgressType.linear,
+              currentStep: 1000,
+              progressColor: color.btnColor,
+              backgroundColor: Colors.grey,
+              borderRadius: BorderRadius.circular(10),
+              minHeight: 6,
+            ),
+          ),
+          Flex(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            direction: Axis.horizontal,
+            children: [
+              Flex(
+                direction: Axis.horizontal,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: color.btnColor),
+                      color: const Color.fromARGB(255, 231, 220, 238),
+                    ),
+                    child: Icon(widget.incons, color: color.btnColor),
+                  ),
+                ],
+              ),
+              Gap(10),
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+                decoration: BoxDecoration(
+                  border: Border.all(color: color.btnColor),
+                  color: const Color.fromARGB(255, 231, 220, 238),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Flex(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  direction: Axis.horizontal,
+                  children: [
+                    Icon(Icons.edit, color: color.btnColor, size: 20),
+                    Gap(7),
+                    Text("Edit"),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
