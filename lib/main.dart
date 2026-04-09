@@ -1,3 +1,4 @@
+import 'package:app_blocker/screens/app_usage_page.dart';
 import 'package:app_blocker/screens/home_page.dart';
 import 'package:app_blocker/utils/permissin_service.dart';
 import 'package:flutter/material.dart';
@@ -24,9 +25,9 @@ class _ExampleState extends State<Example> {
   );
   static final List<Widget> _widgetOptions = <Widget>[
     HomePage(),
-    HomePage(),
+    AppUsagePage(),
     Text('Search', style: optionStyle),
-    HomePage(),
+    AppUsagePage(),
   ];
 
   @override

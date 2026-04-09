@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class color {
-  static const Color bgColor = Color.fromARGB(255, 233, 233, 233);
+  static const Color bgColor = Color.fromARGB(255, 236, 235, 235);
   static const Color bgColor2 = Color.fromARGB(255, 255, 255, 255);
   static const Color btnColor = Color.fromARGB(255, 124, 56, 240);
   static const Color colorText = Color.fromARGB(255, 255, 255, 255);
