@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:linear_progress_bar/linear_progress_bar.dart';
 
-class AntiScrollCard extends StatefulWidget {
+class LockSessionCard extends StatefulWidget {
   final String date;
   final String Time;
   final List<String> Apps;
-  AntiScrollCard({
+  const LockSessionCard({
     super.key,
     required this.date,
     required this.Time,
@@ -15,15 +15,17 @@ class AntiScrollCard extends StatefulWidget {
   });
 
   @override
-  State<AntiScrollCard> createState() => _AntiScrollCardState();
+  State<LockSessionCard> createState() => _LockSessionCardState();
 }
 
-class _AntiScrollCardState extends State<AntiScrollCard> {
+class _LockSessionCardState extends State<LockSessionCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: Colors.red, width: 4)),
+        border: Border(
+          top: BorderSide(color: Color.fromARGB(255, 224, 195, 7), width: 4),
+        ),
         color: color.bgColor2,
         borderRadius: BorderRadius.circular(20),
       ),
@@ -54,7 +56,7 @@ class _AntiScrollCardState extends State<AntiScrollCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Anti-scroll mode",
+                        "Lock Session",
                         style: TextStyle(
                           fontSize: 20,
                           color: color.btnColor,
@@ -99,7 +101,7 @@ class _AntiScrollCardState extends State<AntiScrollCard> {
             maxSteps: 100,
             minHeight: 4,
             currentStep: 70,
-            progressColor: const Color.fromARGB(255, 228, 31, 13),
+            progressColor: const Color.fromARGB(255, 224, 195, 7),
             backgroundColor: const Color.fromARGB(255, 231, 220, 238),
           ),
           Gap(10),
@@ -115,14 +117,17 @@ class _AntiScrollCardState extends State<AntiScrollCard> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("BlOCKED CONTENT", style: TextStyle(fontSize: 16)),
+                  Text("BlOCKED APPS", style: TextStyle(fontSize: 16)),
                   Gap(5),
-                  Text(
-                    " Short Vides/Reels/TikToks",
-                    style: TextStyle(
-                      color: const Color.fromARGB(255, 103, 102, 102),
-                      fontWeight: FontWeight.w700,
-                    ),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: widget.Apps.length,
+                    itemBuilder: (context, index) {
+                      return Text(
+                        widget.Apps[index],
+                        style: TextStyle(color: color.colorText2),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -132,5 +137,6 @@ class _AntiScrollCardState extends State<AntiScrollCard> {
         ],
       ),
     );
+    ;
   }
 }
