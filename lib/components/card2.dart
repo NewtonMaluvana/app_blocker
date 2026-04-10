@@ -52,7 +52,13 @@ class _CardBoxState extends State<CardBox2> {
               fontWeight: FontWeight.w700,
             ),
           ),
-          Icon(widget.icon, size: iconsize, color: color.bgColor2),
+          Flex(
+            direction: Axis.horizontal,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(widget.icon, size: iconsize, color: color.bgColor2),
+            ],
+          ),
           Text(
             widget.subtitle,
             textAlign: TextAlign.center,

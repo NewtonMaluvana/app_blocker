@@ -6,7 +6,7 @@ class AppUsageCard extends StatefulWidget {
   final IconData icon;
   final String Time;
   final String Date;
-  AppUsageCard({
+  const AppUsageCard({
     super.key,
     required this.AppName,
     required this.Time,
@@ -74,11 +74,11 @@ class _AppUsageCardState extends State<AppUsageCard> {
             children: [
               Text(
                 widget.Time,
-                style: TextStyle(color: color.colorText2, fontSize: 24),
+                style: TextStyle(color: color.colorText2, fontSize: 20),
               ),
               Text(
                 widget.Date,
-                style: TextStyle(fontSize: 14, color: color.btnColor),
+                style: TextStyle(fontSize: 14, color: color.colorText3),
               ),
             ],
           ),

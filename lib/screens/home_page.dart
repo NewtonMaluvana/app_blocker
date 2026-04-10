@@ -132,6 +132,7 @@ class _HomePageState extends State<HomePage> {
                                 icon: Icons.lock,
                                 subtitle: "lock the entire phone",
                               ),
+
                               CardBox(
                                 Color: color.btnColor,
                                 title: "Anti-Scroll",
@@ -140,7 +141,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ],
                           ),
-                          Gap(5),
+                          Gap(10),
                           CardBox2(
                             Color: const Color.fromARGB(255, 224, 169, 5),
                             title: "Session Mode",
@@ -173,6 +174,16 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
                 ),
+              ),
+              SessionCard(
+                date: "Start 2024-10-10",
+                Time: "9:00 PM",
+                incons: Icons.shopping_bag,
+              ),
+              SessionCard(
+                date: "2023-10-10",
+                Time: "10:00 AM",
+                incons: Icons.facebook,
               ),
               SessionCard(
                 date: "2023-10-10",

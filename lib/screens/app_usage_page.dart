@@ -51,7 +51,7 @@ class _AppUsagePageState extends State<AppUsagePage> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Text(
-                    "App Usage",
+                    "Apps Usage",
                     style: TextStyle(
                       color: color.colorText2,
                       fontWeight: FontWeight.w500,
@@ -67,13 +67,13 @@ class _AppUsagePageState extends State<AppUsagePage> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Container(
-                  padding: EdgeInsets.all(10),
+                  padding: EdgeInsets.all(5),
                   width: 300,
                   child: getList(),
                 ),
               ],
             ),
-            Gap(10),
+            Gap(3),
 
             AppUsageCard(
               AppName: "Facebook",

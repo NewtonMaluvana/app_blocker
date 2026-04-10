@@ -1,6 +1,7 @@
 import 'package:app_blocker/screens/app_usage_page.dart';
 import 'package:app_blocker/screens/home_page.dart';
-import 'package:app_blocker/utils/permissin_service.dart';
+import 'package:app_blocker/screens/profile_page.dart';
+import 'package:app_blocker/screens/sessions_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:line_icons/line_icons.dart';
@@ -8,7 +9,9 @@ import 'package:line_icons/line_icons.dart';
 //   runApp(WelcomePage());
 // }
 
-void main() => runApp(MaterialApp(home: Example()));
+void main() {
+  runApp(MaterialApp(home: Example()));
+}
 
 class Example extends StatefulWidget {
   const Example({super.key});
@@ -25,9 +28,9 @@ class _ExampleState extends State<Example> {
   );
   static final List<Widget> _widgetOptions = <Widget>[
     HomePage(),
+    SessionsPage(),
     AppUsagePage(),
-    Text('Search', style: optionStyle),
-    AppUsagePage(),
+    ProfilePage(),
   ];
 
   @override
@@ -60,7 +63,9 @@ class _ExampleState extends State<Example> {
                 GButton(icon: LineIcons.home, text: 'Home'),
                 // GButton(icon: LineIcons.heart, text: 'Likes'),
                 // GButton(icon: LineIcons.search, text: 'Search'),
-                GButton(icon: LineIcons.user, text: 'Profile'),
+                GButton(icon: LineIcons.stopwatch, text: 'Sessions'),
+                GButton(icon: LineIcons.info, text: 'App Usage'),
+                GButton(icon: LineIcons.userCircle, text: 'Profile'),
               ],
               selectedIndex: _selectedIndex,
               onTabChange: (index) {

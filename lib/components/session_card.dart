@@ -1,5 +1,4 @@
 import 'package:app_blocker/constants/colors.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:linear_progress_bar/linear_progress_bar.dart';
@@ -54,8 +53,10 @@ class _SessionCardState extends State<SessionCard> {
                   ),
                   Gap(10),
                   Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text("Focus session"),
+
                       Text(
                         widget.date,
                         style: TextStyle(
