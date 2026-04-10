@@ -1,5 +1,6 @@
 import 'package:app_blocker/components/anti_scroll_card.dart';
 import 'package:app_blocker/components/lock_session_card.dart';
+import 'package:app_blocker/components/strict_mode_card.dart';
 import 'package:app_blocker/constants/colors.dart';
 import 'package:flutter/material.dart';
 
@@ -14,6 +15,54 @@ class _SessionsPageState extends State<SessionsPage> {
   bool Strict = false;
   bool Anti = false;
   bool Session = false;
+
+  final List<Widget> apps = [
+    StrictModeCard(
+      Apps: [
+        "Facebook",
+        "WhatsApp",
+        "Twitter",
+        "Instagram",
+        "Snapchat",
+        "WhatsApp",
+        "Twitter",
+        "Instagram",
+        "Snapchat",
+      ],
+      date: "Start 2024-10-10",
+      Time: "1 Day:2h:45 min",
+    ),
+    AntiScrollCard(
+      Apps: [
+        "Facebook",
+        "WhatsApp",
+        "Twitter",
+        "Instagram",
+        "Snapchat",
+        "WhatsApp",
+        "Twitter",
+        "Instagram",
+        "Snapchat",
+      ],
+      date: "Start 2024-10-10",
+      Time: "1 Day:2h:45 min",
+    ),
+    LockSessionCard(
+      Apps: [
+        "Facebook",
+        "WhatsApp",
+        "Twitter",
+        "Instagram",
+        "Snapchat",
+        "WhatsApp",
+        "Twitter",
+        "Instagram",
+        "Snapchat",
+      ],
+      date: "Start 2024-10-10",
+      Time: "1 Day:2h:45 min",
+    ),
+  ];
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -169,7 +218,7 @@ class _SessionsPageState extends State<SessionsPage> {
                 date: "Start 2024-10-10",
                 Time: "1 Day:2h:45 min",
               ),
-              AntiScrollCard(
+              StrictModeCard(
                 Apps: [
                   "Facebook",
                   "WhatsApp",
