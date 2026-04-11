@@ -119,16 +119,16 @@ class _LockSessionCardState extends State<LockSessionCard> {
                 children: [
                   Text("BlOCKED APPS", style: TextStyle(fontSize: 16)),
                   Gap(5),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: widget.Apps.length,
-                    itemBuilder: (context, index) {
-                      return Text(
-                        widget.Apps[index],
-                        style: TextStyle(color: color.colorText2),
-                      );
-                    },
-                  ),
+                  // ListView.builder(
+                  //   shrinkWrap: true,
+                  //   itemCount: widget.Apps.length,
+                  //   itemBuilder: (context, index) {
+                  //     return Text(
+                  //       widget.Apps[index],
+                  //       style: TextStyle(color: color.colorText2),
+                  //     );
+                  //   },
+                  // ),
                 ],
               ),
             ],
@@ -137,6 +137,5 @@ class _LockSessionCardState extends State<LockSessionCard> {
         ],
       ),
     );
-    ;
   }
 }

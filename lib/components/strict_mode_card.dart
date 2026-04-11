@@ -142,6 +142,5 @@ class _StrictModeCardState extends State<StrictModeCard> {
         ],
       ),
     );
-    ;
   }
 }

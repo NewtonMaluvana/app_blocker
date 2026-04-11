@@ -2,6 +2,7 @@ import 'package:app_blocker/components/card.dart';
 import 'package:app_blocker/components/card2.dart';
 import 'package:app_blocker/components/session_card.dart';
 import 'package:app_blocker/constants/colors.dart';
+import 'package:app_blocker/screens/lock_session_page.dart';
 import 'package:app_blocker/utils/permissin_service.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -142,12 +143,22 @@ class _HomePageState extends State<HomePage> {
                             ],
                           ),
                           Gap(10),
-                          CardBox2(
-                            Color: const Color.fromARGB(255, 224, 169, 5),
-                            title: "Session Mode",
-                            icon: Icons.timer,
-                            subtitle:
-                                "Controll when and which apps are blocked",
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LockSessionPage(),
+                                ),
+                              );
+                            },
+                            child: CardBox2(
+                              Color: const Color.fromARGB(255, 224, 169, 5),
+                              title: "Session Mode",
+                              icon: Icons.timer,
+                              subtitle:
+                                  "Controll when and which apps are blocked",
+                            ),
                           ),
                         ],
                       ),

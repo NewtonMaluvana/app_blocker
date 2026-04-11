@@ -43,6 +43,7 @@ dependencies:
   linear_progress_bar: ^3.0.0
   country_state_selector: ^1.0.1
   list_item_selector: ^1.0.1
+  flutter_animate: ^4.5.2
 
 dev_dependencies:
   flutter_test:

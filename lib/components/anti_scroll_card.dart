@@ -7,7 +7,7 @@ class AntiScrollCard extends StatefulWidget {
   final String date;
   final String Time;
   final List<String> Apps;
-  AntiScrollCard({
+  const AntiScrollCard({
     super.key,
     required this.date,
     required this.Time,

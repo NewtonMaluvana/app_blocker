@@ -1,5 +1,6 @@
 import 'package:app_blocker/constants/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class CardBox extends StatefulWidget {
   final String title;
@@ -54,9 +55,15 @@ class _CardBoxState extends State<CardBox> {
           ),
           Flex(
             direction: Axis.horizontal,
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(widget.icon, size: iconsize, color: color.bgColor2),
+              Animate(
+                effects: [
+                  ScaleEffect(duration: 500.ms),
+                  ShaderEffect(duration: 500.ms),
+                ],
+                child: Icon(widget.icon, size: iconsize, color: color.bgColor2),
+              ),
             ],
           ),
           Text(
