@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:auto_input_box/auto_input_box.dart';
-import 'package:flutter_time_duration_picker/flutter_time_duration_picker.dart';
-import 'package:duration_picker_dialog_box/duration_picker_dialog_box.dart';
+import 'package:numberpicker/numberpicker.dart';
 
 class LockSessionPage extends StatefulWidget {
   const LockSessionPage({super.key});
@@ -15,6 +14,11 @@ class LockSessionPage extends StatefulWidget {
 
 class _LockSessionPageState extends State<LockSessionPage> {
   TextEditingController sessionEditingController = TextEditingController();
+  int _Hours = 20;
+  int _Minutes = 20;
+
+  bool isHours = false;
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -98,6 +102,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
                         fontSize: 18,
                       ),
                       inputDecoration: InputDecoration(
+                        hintText: "Name this session",
                         fillColor: const Color.fromARGB(255, 51, 49, 49),
                         filled: true,
                         border: OutlineInputBorder(
@@ -129,8 +134,127 @@ class _LockSessionPageState extends State<LockSessionPage> {
                       direction: Axis.horizontal,
                       mainAxisAlignment: MainAxisAlignment.start,
                     ),
+
+                    NumberPicker(
+                      value: isHours ? _Hours : _Minutes,
+                      minValue: 0,
+                      maxValue: 10000,
+                      onChanged: (value) => setState(() {
+                        if (isHours) {
+                          _Hours = value;
+                        } else {
+                          _Minutes = value;
+                        }
+                      }),
+                    ),
+
+                    Flex(
+                      direction: Axis.horizontal,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isHours = true;
+                            });
+                          },
+                          child: Container(
+                            margin: EdgeInsets.all(15),
+                            child: Column(
+                              children: [
+                                Text("Hours"),
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 30,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Color.fromARGB(255, 51, 49, 49),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    _Hours.toString(),
+                                    style: GoogleFonts.roboto(
+                                      color: color.colorText,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(""),
+                            Container(
+                              child: Text(
+                                ":",
+                                style: TextStyle(
+                                  color: color.colorText3,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isHours = false;
+                            });
+                          },
+                          child: Container(
+                            margin: EdgeInsets.all(15),
+                            child: Column(
+                              children: [
+                                Text("Minutes"),
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 30,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Color.fromARGB(255, 51, 49, 49),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    _Minutes.toString(),
+                                    style: GoogleFonts.roboto(
+                                      color: color.colorText,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
+              ),
+
+              //end of the session duration inputbox
+              Flex(
+                direction: Axis.horizontal,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: EdgeInsets.all(15),
+                    child: Text(
+                      "APPS TO BLOCK",
+                      style: GoogleFonts.roboto(
+                        fontSize: 14,
+                        color: color.btnColor,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

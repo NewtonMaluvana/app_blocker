@@ -49,6 +49,7 @@ dependencies:
   auto_input_box: ^0.0.2
   flutter_time_duration_picker: ^1.0.0
   duration_picker_dialog_box: ^1.0.2
+  numberpicker: ^2.1.2
 
 dev_dependencies:
   flutter_test:
