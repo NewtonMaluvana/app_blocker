@@ -44,6 +44,11 @@ dependencies:
   country_state_selector: ^1.0.1
   list_item_selector: ^1.0.1
   flutter_animate: ^4.5.2
+  google_fonts: ^6.3.3
+  flutter_inputbox: ^0.0.1
+  auto_input_box: ^0.0.2
+  flutter_time_duration_picker: ^1.0.0
+  duration_picker_dialog_box: ^1.0.2
 
 dev_dependencies:
   flutter_test:
