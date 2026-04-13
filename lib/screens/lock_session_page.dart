@@ -147,7 +147,6 @@ class _LockSessionPageState extends State<LockSessionPage> {
                         }
                       }),
                     ),
-
                     Flex(
                       direction: Axis.horizontal,
                       mainAxisAlignment: MainAxisAlignment.center,
