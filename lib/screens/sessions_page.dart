@@ -82,7 +82,8 @@ class _SessionsPageState extends State<SessionsPage> {
                           Anti = false;
                         });
                       },
-                      child: Container(
+                      child: AnimatedContainer(
+                        duration: Duration(milliseconds: 500),
                         padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           border: Border(
@@ -124,7 +125,8 @@ class _SessionsPageState extends State<SessionsPage> {
                           Session = false;
                         });
                       },
-                      child: Container(
+                      child: AnimatedContainer(
+                        duration: Duration(milliseconds: 500),
                         padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           border: Border(

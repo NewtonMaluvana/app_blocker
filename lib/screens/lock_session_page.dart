@@ -21,61 +21,97 @@ class _LockSessionPageState extends State<LockSessionPage> {
 
   bool isHours = false;
   List<AppInfo> AppsList = [];
-  List<AppInfo> AppsListSelected = [];
+  Set<String> AppsListSelected = {};
 
   //get the modal screen to add screens
 
   Future<void> _showAddAppsModal(BuildContext context) async {
     await showModalBottomSheet(
+      isScrollControlled: true,
+      backgroundColor: color.bgColor,
       context: context,
       builder: (context) {
-        return Container(
-          padding: EdgeInsets.all(20),
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    "SELECT APPS TO BLOCK",
+                    style: GoogleFonts.poppins(fontSize: 18),
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsets.all(15),
+                  padding: EdgeInsets.all(10),
 
-          child: SingleChildScrollView(
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 5, // 4 apps per row
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                // height relative to width
-              ),
-              itemBuilder: AppsList.length > 0
-                  ? (context, index) {
-                      final app = AppsList[index];
-                      return GestureDetector(
-                        onTap: () {
-                          // Handleapp selection
-                          setState(() {
-                            if (AppsListSelected.contains(app.name)) {
-                              AppsListSelected.remove(app);
-                            } else {
-                              AppsListSelected.add(app);
-                            }
-                          });
-                        },
-                        child: AnimatedContainer(
-                          duration: Duration(milliseconds: 1000),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: color.btnColor),
-                            color: color.bgColor2,
-                            borderRadius: BorderRadius.circular(25),
+                  child: SingleChildScrollView(
+                    child: GridView.builder(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 5, // 4 apps per row
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                            // height relative to width
                           ),
-                          padding: EdgeInsets.all(5),
-                          child: app.icon != null
-                              ? Image.memory(app.icon!, width: 4, height: 4)
-                              : const Icon(Icons.android, size: 4),
-                        ),
-                      );
-                    }
-                  : (context, index) {
-                      return Container(child: Text("No apps found"));
-                    },
-              itemCount: AppsList.length,
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-            ),
-          ),
+                      itemBuilder: AppsList.isNotEmpty
+                          ? (context, index) {
+                              final app = AppsList[index];
+                              return GestureDetector(
+                                onTap: () {
+                                  // Handleapp selection
+                                  setModalState(() {
+                                    if (AppsListSelected.contains(app.name)) {
+                                      AppsListSelected.remove(app.name);
+                                    } else {
+                                      AppsListSelected.add(app.name);
+                                    }
+                                  });
+                                },
+                                child: AnimatedContainer(
+                                  padding: EdgeInsets.all(8),
+                                  duration: Duration(milliseconds: 1000),
+                                  decoration: BoxDecoration(
+                                    color: AppsListSelected.contains(app.name)
+                                        ? const Color.fromARGB(
+                                            255,
+                                            45,
+                                            201,
+                                            152,
+                                          )
+                                        : const Color.fromARGB(
+                                            255,
+                                            212,
+                                            212,
+                                            212,
+                                          ),
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+
+                                  child: app.icon != null
+                                      ? Image.memory(
+                                          app.icon!,
+                                          width: 4,
+                                          height: 4,
+                                        )
+                                      : const Icon(Icons.android, size: 4),
+                                ),
+                              );
+                            }
+                          : (context, index) {
+                              return Container(child: Text("No apps found"));
+                            },
+                      itemCount: AppsList.length,
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -165,18 +201,19 @@ class _LockSessionPageState extends State<LockSessionPage> {
                   child: Column(
                     children: [
                       Flex(
+                        direction: Axis.horizontal,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Text(
                             "SESSION NAME",
+
                             style: GoogleFonts.roboto(fontSize: 16),
                           ),
                         ],
-                        direction: Axis.horizontal,
-                        mainAxisAlignment: MainAxisAlignment.start,
                       ),
                       AutoInputBox(
                         textStyle: TextStyle(
-                          color: color.colorText,
+                          color: const Color.fromARGB(255, 255, 255, 255),
                           fontSize: 18,
                         ),
                         inputDecoration: InputDecoration(
@@ -203,20 +240,21 @@ class _LockSessionPageState extends State<LockSessionPage> {
                   child: Column(
                     children: [
                       Flex(
+                        direction: Axis.horizontal,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Text(
                             "SESSION DURATION",
                             style: GoogleFonts.roboto(fontSize: 16),
                           ),
                         ],
-                        direction: Axis.horizontal,
-                        mainAxisAlignment: MainAxisAlignment.start,
                       ),
 
                       NumberPicker(
+                        infiniteLoop: true,
                         value: isHours ? _Hours : _Minutes,
                         minValue: 0,
-                        maxValue: 10000,
+                        maxValue: isHours ? 72 : 59,
                         onChanged: (value) => setState(() {
                           if (isHours) {
                             _Hours = value;
@@ -340,8 +378,8 @@ class _LockSessionPageState extends State<LockSessionPage> {
                         //Handle edit/add functionality
                         setState(() {
                           getApps();
-                          _showAddAppsModal(context);
                         });
+                        _showAddAppsModal(context);
                       },
                       child: Container(
                         padding: EdgeInsets.all(10),
@@ -351,7 +389,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
                         ),
                         margin: EdgeInsets.all(15),
                         child: Text(
-                          AppsListSelected.length > 0 ? "EDIT" : "ADD",
+                          AppsListSelected.isNotEmpty ? "EDIT" : "ADD",
 
                           style: GoogleFonts.roboto(
                             fontSize: 12,
@@ -364,7 +402,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
                 ),
 
                 Container(
-                  child: AppsListSelected.length > 0
+                  child: AppsListSelected.isNotEmpty
                       ? Container(
                           padding: EdgeInsets.all(10),
                           decoration: BoxDecoration(
@@ -377,27 +415,34 @@ class _LockSessionPageState extends State<LockSessionPage> {
                               direction: Axis.horizontal,
                               spacing: 2,
                               runSpacing: 2,
-                              children: AppsListSelected.map((app) {
-                                return Container(
-                                  margin: EdgeInsets.all(5),
-                                  padding: EdgeInsets.all(5),
-                                  decoration: BoxDecoration(
-                                    color: color.bgColor2,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      app.icon != null
-                                          ? Image.memory(
-                                              app.icon!,
-                                              width: 44,
-                                              height: 44,
-                                            )
-                                          : const Icon(Icons.android, size: 44),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
+                              children:
+                                  AppsList.where(
+                                    (app) =>
+                                        AppsListSelected.contains(app.name),
+                                  ).map((app) {
+                                    return Container(
+                                      margin: EdgeInsets.all(5),
+                                      padding: EdgeInsets.all(5),
+                                      decoration: BoxDecoration(
+                                        color: color.bgColor2,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          app.icon != null
+                                              ? Image.memory(
+                                                  app.icon!,
+                                                  width: 44,
+                                                  height: 44,
+                                                )
+                                              : const Icon(
+                                                  Icons.android,
+                                                  size: 44,
+                                                ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
                             ),
                           ),
                         )
