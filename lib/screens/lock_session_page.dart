@@ -1,4 +1,5 @@
 import 'package:app_blocker/constants/colors.dart';
+import 'package:block_app/block_app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,6 +7,7 @@ import 'package:auto_input_box/auto_input_box.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:numberpicker/numberpicker.dart';
 import 'package:installed_apps/installed_apps.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LockSessionPage extends StatefulWidget {
   const LockSessionPage({super.key});
@@ -22,8 +24,27 @@ class _LockSessionPageState extends State<LockSessionPage> {
   bool isHours = false;
   List<AppInfo> AppsList = [];
   Set<String> AppsListSelected = {};
-
+  @override
+  void initState() {
+    super.initState();
+    loadSelectedApps();
+  }
   //get the modal screen to add screens
+
+  //getting the selcted apps from the phone storage
+  Future<void> loadSelectedApps() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final savedApps = prefs.getStringList('blocked_apps') ?? [];
+    setState(() {
+      AppsListSelected = savedApps.toSet();
+    });
+  }
+
+  //saving the blocked apps list to the phone storage
+  Future<void> saveSelctedApps() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList("bloced_apps", AppsListSelected.toList());
+  }
 
   Future<void> _showAddAppsModal(BuildContext context) async {
     await showModalBottomSheet(
@@ -69,10 +90,14 @@ class _LockSessionPageState extends State<LockSessionPage> {
                                       AppsListSelected.add(app.name);
                                     }
                                   });
+
+                                  setState(() {
+                                    saveSelctedApps();
+                                  });
                                 },
-                                child: AnimatedContainer(
+                                child: Container(
                                   padding: EdgeInsets.all(8),
-                                  duration: Duration(milliseconds: 1000),
+
                                   decoration: BoxDecoration(
                                     color: AppsListSelected.contains(app.name)
                                         ? const Color.fromARGB(
@@ -129,6 +154,27 @@ class _LockSessionPageState extends State<LockSessionPage> {
     } on PlatformException {
       print("Failed to get installed apps.");
     }
+  }
+
+  final blockApp = BlockApp();
+  Future<void> _initBlockApp() async {
+    await blockApp.initialize(
+      config: const AppBlockConfig(
+        defaultMessage: 'This app has been blocked for productivity',
+        overlayBackgroundColor: Colors.black87,
+        overlayTextColor: Colors.white,
+        actionButtonText: 'Close',
+        autoStartService: true,
+      ),
+    );
+  }
+
+  Future<void> blockapps() async {
+    await _initBlockApp();
+    await blockApp.blockAllApps(
+      onlyUserApps: true, // Do not block system apps
+    );
+    await blockApp.startBlockingService();
   }
 
   @override
@@ -453,11 +499,18 @@ class _LockSessionPageState extends State<LockSessionPage> {
                           ),
                         ),
                 ),
+
                 GestureDetector(
-                  onTap: () {
-                    getApps();
+                  onTap: () async {
+                    blockapps();
                   },
-                  child: Container(child: Text("Get installed apps")),
+                  child: Container(child: (Text("block apps"))),
+                ),
+                GestureDetector(
+                  onTap: () async {
+                    await blockApp.stopBlockingService();
+                  },
+                  child: Container(child: (Text("Stopp apps"))),
                 ),
               ],
             ),

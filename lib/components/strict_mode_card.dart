@@ -61,7 +61,7 @@ class _StrictModeCardState extends State<StrictModeCard> {
                       Text(
                         "Strict mode",
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 15,
                           color: color.btnColor,
                           fontWeight: FontWeight.w500,
                         ),
@@ -77,6 +77,7 @@ class _StrictModeCardState extends State<StrictModeCard> {
                           Text(
                             "Active now",
                             style: TextStyle(
+                              fontSize: 10,
                               color: const Color.fromARGB(255, 16, 192, 112),
                               fontWeight: FontWeight.w600,
                             ),
@@ -92,7 +93,7 @@ class _StrictModeCardState extends State<StrictModeCard> {
                 children: [
                   Text(
                     "Time remaining",
-                    style: TextStyle(fontSize: 18, color: color.colorText2),
+                    style: TextStyle(fontSize: 12, color: color.colorText2),
                   ),
                   Text(widget.Time),
                 ],

@@ -35,59 +35,62 @@ class _AntiScrollCardState extends State<AntiScrollCard> {
             direction: Axis.horizontal,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: color.btnColor),
-                      color: const Color.fromARGB(255, 231, 220, 238),
-                      borderRadius: BorderRadius.circular(10),
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: color.btnColor),
+                        color: const Color.fromARGB(255, 231, 220, 238),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.lock_outline_rounded,
+                        color: color.btnColor,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.lock_outline_rounded,
-                      color: color.btnColor,
-                    ),
-                  ),
-                  Gap(10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Anti-scroll mode",
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: color.btnColor,
-                          fontWeight: FontWeight.w500,
+                    Gap(10),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Anti-scroll mode",
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: color.btnColor,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                      Row(
-                        spacing: 5,
-                        children: [
-                          Icon(
-                            Icons.circle,
-                            size: 10,
-                            color: const Color.fromARGB(255, 16, 192, 112),
-                          ),
-                          Text(
-                            "Active now",
-                            style: TextStyle(
+                        Row(
+                          spacing: 5,
+                          children: [
+                            Icon(
+                              Icons.circle,
+                              size: 10,
                               color: const Color.fromARGB(255, 16, 192, 112),
-                              fontWeight: FontWeight.w600,
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
+                            Text(
+                              "Active now",
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: const Color.fromARGB(255, 16, 192, 112),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
               Column(
                 spacing: 2,
                 children: [
                   Text(
                     "Time remaining",
-                    style: TextStyle(fontSize: 18, color: color.colorText2),
+                    style: TextStyle(fontSize: 12, color: color.colorText2),
                   ),
                   Text(widget.Time),
                 ],

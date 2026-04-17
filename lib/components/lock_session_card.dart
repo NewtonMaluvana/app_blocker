@@ -58,7 +58,7 @@ class _LockSessionCardState extends State<LockSessionCard> {
                       Text(
                         "Lock Session",
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 15,
                           color: color.btnColor,
                           fontWeight: FontWeight.w500,
                         ),
@@ -74,6 +74,7 @@ class _LockSessionCardState extends State<LockSessionCard> {
                           Text(
                             "Active now",
                             style: TextStyle(
+                              fontSize: 10,
                               color: const Color.fromARGB(255, 16, 192, 112),
                               fontWeight: FontWeight.w600,
                             ),
@@ -89,7 +90,7 @@ class _LockSessionCardState extends State<LockSessionCard> {
                 children: [
                   Text(
                     "Time remaining",
-                    style: TextStyle(fontSize: 18, color: color.colorText2),
+                    style: TextStyle(fontSize: 12, color: color.colorText2),
                   ),
                   Text(widget.Time),
                 ],
