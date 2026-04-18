@@ -1,3 +1,4 @@
+import 'package:app_blocker/app_blocker.dart' hide AppInfo;
 import 'package:block_apps/constants/colors.dart';
 
 import 'package:flutter/material.dart';
@@ -18,6 +19,8 @@ class LockSessionPage extends StatefulWidget {
 
 class _LockSessionPageState extends State<LockSessionPage> {
   TextEditingController sessionEditingController = TextEditingController();
+  
+  final _blocker = AppBlocker.instance;
   int _Hours = 20;
   int _Minutes = 20;
 
@@ -46,6 +49,21 @@ class _LockSessionPageState extends State<LockSessionPage> {
     await prefs.setStringList("bloced_apps", AppsListSelected.toList());
   }
 
+  //block sekected apps
+
+  Future<void> _blockSelected() async {
+    if (AppsListSelected.isEmpty) return;
+
+    try {
+      await _blocker.blockApps(AppsListSelected.toList());
+      SnackBar(content: Text('${AppsListSelected.length} app(s) blocked'));
+      setState(() => AppsListSelected = {});
+      // _refreshBlocked();
+    } catch (e) {
+      // _err('$e');
+    }
+  }
+ 
   Future<void> _showAddAppsModal(BuildContext context) async {
     await showModalBottomSheet(
       isScrollControlled: true,
@@ -84,10 +102,12 @@ class _LockSessionPageState extends State<LockSessionPage> {
                                 onTap: () {
                                   // Handleapp selection
                                   setModalState(() {
-                                    if (AppsListSelected.contains(app.name)) {
-                                      AppsListSelected.remove(app.name);
+                                    if (AppsListSelected.contains(
+                                      app.packageName,
+                                    )) {
+                                      AppsListSelected.remove(app.packageName);
                                     } else {
-                                      AppsListSelected.add(app.name);
+                                      AppsListSelected.add(app.packageName);
                                     }
                                   });
 
@@ -99,7 +119,10 @@ class _LockSessionPageState extends State<LockSessionPage> {
                                   padding: EdgeInsets.all(8),
 
                                   decoration: BoxDecoration(
-                                    color: AppsListSelected.contains(app.name)
+                                    color:
+                                        AppsListSelected.contains(
+                                          app.packageName,
+                                        )
                                         ? const Color.fromARGB(
                                             255,
                                             45,
@@ -134,6 +157,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
                     ),
                   ),
                 ),
+
               ],
             );
           },
@@ -445,7 +469,9 @@ class _LockSessionPageState extends State<LockSessionPage> {
                               children:
                                   AppsList.where(
                                     (app) =>
-                                        AppsListSelected.contains(app.name),
+                                        AppsListSelected.contains(
+                                      app.packageName,
+                                    ),
                                   ).map((app) {
                                     return Container(
                                       margin: EdgeInsets.all(5),
@@ -483,7 +509,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
 
                 GestureDetector(
                   onTap: () async {
-                   
+                    _blockSelected();
                   },
                   child: Container(child: (Text("block apps"))),
                 ),
@@ -493,6 +519,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
                   },
                   child: Container(child: (Text("Stopp apps"))),
                 ),
+
               ],
             ),
           ),
