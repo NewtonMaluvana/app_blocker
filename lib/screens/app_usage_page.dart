@@ -1,5 +1,5 @@
-import 'package:app_blocker/components/app_usage_card.dart';
-import 'package:app_blocker/constants/colors.dart';
+import 'package:block_apps/components/app_usage_card.dart';
+import 'package:block_apps/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:list_item_selector/list_item_selector.dart';

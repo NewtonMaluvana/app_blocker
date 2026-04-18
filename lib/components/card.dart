@@ -1,4 +1,4 @@
-import 'package:app_blocker/constants/colors.dart';
+import 'package:block_apps/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 

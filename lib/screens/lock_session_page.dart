@@ -1,5 +1,5 @@
-import 'package:app_blocker/constants/colors.dart';
-import 'package:block_app/block_app.dart';
+import 'package:block_apps/constants/colors.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -156,26 +156,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
     }
   }
 
-  final blockApp = BlockApp();
-  Future<void> _initBlockApp() async {
-    await blockApp.initialize(
-      config: const AppBlockConfig(
-        defaultMessage: 'This app has been blocked for productivity',
-        overlayBackgroundColor: Colors.black87,
-        overlayTextColor: Colors.white,
-        actionButtonText: 'Close',
-        autoStartService: true,
-      ),
-    );
-  }
 
-  Future<void> blockapps() async {
-    await _initBlockApp();
-    await blockApp.blockAllApps(
-      onlyUserApps: true, // Do not block system apps
-    );
-    await blockApp.startBlockingService();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -502,13 +483,13 @@ class _LockSessionPageState extends State<LockSessionPage> {
 
                 GestureDetector(
                   onTap: () async {
-                    blockapps();
+                   
                   },
                   child: Container(child: (Text("block apps"))),
                 ),
                 GestureDetector(
                   onTap: () async {
-                    await blockApp.stopBlockingService();
+                   
                   },
                   child: Container(child: (Text("Stopp apps"))),
                 ),

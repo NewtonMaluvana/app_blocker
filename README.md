@@ -1,4 +1,4 @@
-# app_blocker
+# block_apps
 
 A new Flutter project.
 

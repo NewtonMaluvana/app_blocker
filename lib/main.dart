@@ -1,7 +1,7 @@
-import 'package:app_blocker/screens/app_usage_page.dart';
-import 'package:app_blocker/screens/home_page.dart';
-import 'package:app_blocker/screens/profile_page.dart';
-import 'package:app_blocker/screens/sessions_page.dart';
+import 'package:block_apps/screens/app_usage_page.dart';
+import 'package:block_apps/screens/home_page.dart';
+import 'package:block_apps/screens/profile_page.dart';
+import 'package:block_apps/screens/sessions_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:line_icons/line_icons.dart';

@@ -1,4 +1,4 @@
-package com.example.app_blocker
+package com.yourname.block_apps
 
 import io.flutter.embedding.android.FlutterActivity
 

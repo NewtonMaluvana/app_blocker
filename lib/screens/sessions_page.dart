@@ -1,7 +1,7 @@
-import 'package:app_blocker/components/anti_scroll_card.dart';
-import 'package:app_blocker/components/lock_session_card.dart';
-import 'package:app_blocker/components/strict_mode_card.dart';
-import 'package:app_blocker/constants/colors.dart';
+import 'package:block_apps/components/anti_scroll_card.dart';
+import 'package:block_apps/components/lock_session_card.dart';
+import 'package:block_apps/components/strict_mode_card.dart';
+import 'package:block_apps/constants/colors.dart';
 import 'package:flutter/material.dart';
 
 class SessionsPage extends StatefulWidget {

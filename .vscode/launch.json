@@ -5,18 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "app_blocker",
+            "name": "block_apps",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "app_blocker (profile mode)",
+            "name": "block_apps (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "app_blocker (release mode)",
+            "name": "block_apps (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

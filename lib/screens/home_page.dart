@@ -1,9 +1,10 @@
-import 'package:app_blocker/components/card.dart';
-import 'package:app_blocker/components/card2.dart';
-import 'package:app_blocker/components/session_card.dart';
-import 'package:app_blocker/constants/colors.dart';
-import 'package:app_blocker/screens/lock_session_page.dart';
-import 'package:app_blocker/utils/permissin_service.dart';
+import 'package:block_apps/components/card.dart';
+import 'package:block_apps/components/card2.dart';
+import 'package:block_apps/components/session_card.dart';
+import 'package:block_apps/constants/colors.dart';
+import 'package:block_apps/screens/lock_session_page.dart';
+import 'package:block_apps/utils/permission_handler.dart';
+
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
@@ -12,9 +13,11 @@ class HomePage extends StatefulWidget {
 
   @override
   State<HomePage> createState() => _HomePageState();
+ 
 }
-
 class _HomePageState extends State<HomePage> {
+
+ 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -42,10 +45,7 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         GestureDetector(
                           // ✅ CORRECT
-                          onTap: () async {
-                            await checkAndRequestPermission(context);
-                            // update state after, separately
-                          },
+                         
                           child: Container(
                             width: 150,
                             padding: EdgeInsets.all(10),
@@ -167,7 +167,14 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               //end of the features card row
-
+              GestureDetector(
+                onTap: () {
+                  showModal(context);
+                },
+                child: Container(
+                  
+                  child: Text("Get permission")),
+              ),
               //start of the session card row
               Padding(
                 padding: const EdgeInsets.only(left: 8.0, top: 30),
