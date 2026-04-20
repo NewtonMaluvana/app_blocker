@@ -3,6 +3,7 @@ import 'package:block_apps/components/card2.dart';
 import 'package:block_apps/components/session_card.dart';
 import 'package:block_apps/constants/colors.dart';
 import 'package:block_apps/screens/lock_session_page.dart';
+import 'package:block_apps/screens/strict_mode.dart';
 import 'package:block_apps/utils/permission_handler.dart';
 
 import 'package:flutter/material.dart';
@@ -127,11 +128,22 @@ class _HomePageState extends State<HomePage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             spacing: 5,
                             children: [
-                              CardBox(
-                                Color: const Color.fromARGB(255, 204, 1, 1),
-                                title: "Strict Mode",
-                                icon: Icons.lock,
-                                subtitle: "lock the entire phone",
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const StrictModePage(),
+                                    ),
+                                  );
+                                },
+                                child: CardBox(
+                                  Color: const Color.fromARGB(255, 204, 1, 1),
+                                  title: "Strict Mode",
+                                  icon: Icons.lock,
+                                  subtitle: "lock the entire phone",
+                                ),
                               ),
 
                               CardBox(
