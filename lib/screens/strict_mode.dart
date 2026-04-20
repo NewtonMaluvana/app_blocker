@@ -18,12 +18,16 @@ class StrictModePage extends StatefulWidget {
 }
 
 class _StrictModePageState extends State<StrictModePage> {
-  TextEditingController sessionEditingController = TextEditingController();
+  TextEditingController sessionHoursController = TextEditingController();
+  TextEditingController sessionNameController = TextEditingController();
+  TextEditingController sessionMinutesController = TextEditingController();
   
   final _blocker = AppBlocker.instance;
   int _Hours = 20;
   int _Minutes = 20;
-
+  String sessionName = "";
+  int sessionHour = 0;
+  int sessionMinute = 0;
   bool isHours = false;
   List<AppInfo> AppsList = [];
   Set<String> AppsListSelected = {};
@@ -37,6 +41,49 @@ class _StrictModePageState extends State<StrictModePage> {
  
 
   //saving the blocked apps list to the phone storage
+ //add schedule 
+
+  Future<void> BlockApps() async {
+    //block all the apps
+    setState(() {
+      getApps();
+    });
+
+    if (AppsList != null) {
+      setState(() {
+        AppsList.map((i) {
+          AppsListSelected.add(i.packageName);
+        });
+      });
+      addSchedule(
+        sessionName,
+        AppsListSelected.toList(),
+        sessionMinute,
+        sessionHour,
+      ); //add the schedule
+    }
+  }
+
+  Future<void> addSchedule(
+    String name,
+    List<String> Apps,
+    int minDuration,
+    int hourDuration,
+  ) async {
+    await _blocker.addSchedule(
+      BlockSchedule(
+        id: name,
+        name: name,
+        appIdentifiers: Apps.toList(),
+        startTime: TimeOfDay.now(),
+        endTime: (TimeOfDay(
+          hour: TimeOfDay.now().hour + hourDuration,
+          minute: TimeOfDay.now().minute + minDuration,
+        )),
+      ),
+    );
+  }
+
 
   //block sekected apps
   Future<void> _blockSelected() async {
@@ -51,7 +98,8 @@ class _StrictModePageState extends State<StrictModePage> {
       // _err('$e');
     }
   }
- 
+  
+
   Future<void> _showAddAppsModal(BuildContext context) async {
     await showModalBottomSheet(
       isScrollControlled: true,
@@ -186,10 +234,10 @@ class _StrictModePageState extends State<StrictModePage> {
                       margin: EdgeInsets.all(15),
                       padding: EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: color.btnColor,
+                        color: const Color.fromARGB(255, 183, 51, 51),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(Icons.timer, color: color.bgColor2),
+                      child: Icon(Icons.lock, color: color.bgColor2),
                     ),
                     Expanded(
                       child: Container(
@@ -241,6 +289,7 @@ class _StrictModePageState extends State<StrictModePage> {
                         direction: Axis.horizontal,
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
+                         
                           Text(
                             "SESSION NAME",
 
@@ -248,12 +297,23 @@ class _StrictModePageState extends State<StrictModePage> {
                           ),
                         ],
                       ),
-                      AutoInputBox(
-                        textStyle: TextStyle(
+                      TextField(
+                        style: TextStyle(
                           color: const Color.fromARGB(255, 255, 255, 255),
                           fontSize: 18,
                         ),
-                        inputDecoration: InputDecoration(
+                        decoration: InputDecoration(
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                sessionNameController.clear();
+                              });
+                            },
+                            icon: Icon(Icons.clear),
+                          ),
+                          hintStyle: TextStyle(
+                            color: Color.fromARGB(255, 152, 154, 154),
+                          ),
                           hintText: "Name this session",
                           fillColor: const Color.fromARGB(255, 51, 49, 49),
                           filled: true,
@@ -261,9 +321,8 @@ class _StrictModePageState extends State<StrictModePage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        textEditingController: sessionEditingController,
-                        suggestions: [""],
-                        toDisplayString: (item) => item,
+                        controller: sessionNameController,
+                       
                       ),
                     ],
                   ),
@@ -287,7 +346,7 @@ class _StrictModePageState extends State<StrictModePage> {
                 ),
              
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: Row(spacing:6,children: [
                     Expanded(flex:3,child: 
                   TextField(
@@ -300,6 +359,9 @@ class _StrictModePageState extends State<StrictModePage> {
                             fontSize: 18,
                           ),
                          decoration: InputDecoration(
+                            hintStyle: TextStyle(
+                              color: const Color.fromARGB(255, 152, 154, 154),
+                            ),
                             hintText: "Hours",
                             fillColor: const Color.fromARGB(255, 51, 49, 49),
                             filled: true,
@@ -307,7 +369,7 @@ class _StrictModePageState extends State<StrictModePage> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          controller: sessionEditingController,
+                          controller: sessionHoursController,
                         
                         ),
                          ),
@@ -322,6 +384,9 @@ class _StrictModePageState extends State<StrictModePage> {
                             fontSize: 18,
                           ),
                          decoration: InputDecoration(
+                            hintStyle: TextStyle(
+                              color: const Color.fromARGB(255, 152, 154, 154),
+                            ),
                             hintText: "Minutes",
                             fillColor: const Color.fromARGB(255, 51, 49, 49),
                             filled: true,
@@ -329,7 +394,7 @@ class _StrictModePageState extends State<StrictModePage> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          controller: sessionEditingController,
+                          controller: sessionMinutesController,
                         
                         
                         ),
