@@ -1,8 +1,6 @@
 import 'package:app_blocker/app_blocker.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'dart:io';
-import 'dart:typed_data';
 
 Future<void> checkPermission() async {
   final blocker = AppBlocker.instance;

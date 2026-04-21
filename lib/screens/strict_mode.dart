@@ -1,14 +1,12 @@
 import 'package:app_blocker/app_blocker.dart' hide AppInfo;
 import 'package:block_apps/constants/colors.dart';
+import 'package:block_apps/utils/blocker_service.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:auto_input_box/auto_input_box.dart';
 import 'package:installed_apps/app_info.dart';
-import 'package:numberpicker/numberpicker.dart';
 import 'package:installed_apps/installed_apps.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class StrictModePage extends StatefulWidget {
   const StrictModePage({super.key});
@@ -22,9 +20,9 @@ class _StrictModePageState extends State<StrictModePage> {
   TextEditingController sessionNameController = TextEditingController();
   TextEditingController sessionMinutesController = TextEditingController();
   
-  final _blocker = AppBlocker.instance;
-  int _Hours = 20;
-  int _Minutes = 20;
+ 
+  final int _Hours = 20;
+  final int _Minutes = 20;
   String sessionName = "";
   int sessionHour = 0;
   int sessionMinute = 0;
@@ -42,26 +40,42 @@ class _StrictModePageState extends State<StrictModePage> {
 
   //saving the blocked apps list to the phone storage
  //add schedule 
+Future<void> getApps() async {
+    try {
+      List<AppInfo> appsList = await InstalledApps.getInstalledApps(
+        excludeSystemApps: false,
+        withIcon: true,
+      );
+      setState(() {
+        AppsList = (appsList);
+      });
+    } on PlatformException {
+      print("Failed to get installed apps.");
+    }
+  }
 
   Future<void> BlockApps() async {
-    //block all the apps
-    setState(() {
-      getApps();
-    });
+    try {
+      await getApps();
 
-    if (AppsList != null) {
-      setState(() {
-        AppsList.map((i) {
-          AppsListSelected.add(i.packageName);
-        });
-      });
+      sessionName = sessionNameController.text;
+      sessionHour = int.parse(sessionHoursController.text);
+      sessionMinute = int.parse(sessionMinutesController.text);
+      if (AppsList != null) {
+        AppsListSelected = AppsList.where(
+          (i) => i.packageName != "com.yourname.block_apps",
+        ).map((i) => i.packageName).toSet();
+      }
+
       addSchedule(
         sessionName,
         AppsListSelected.toList(),
         sessionMinute,
         sessionHour,
-      ); //add the schedule
-    }
+      );
+    } catch (e) {}
+
+   
   }
 
   Future<void> addSchedule(
@@ -70,35 +84,31 @@ class _StrictModePageState extends State<StrictModePage> {
     int minDuration,
     int hourDuration,
   ) async {
-    await _blocker.addSchedule(
+    await BlockService.blocker.addSchedule(
       BlockSchedule(
-        id: name,
+        enabled: true,
+        weekdays: [],
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
         name: name,
+        scheduleDate: DateTime.now(),
         appIdentifiers: Apps.toList(),
         startTime: TimeOfDay.now(),
-        endTime: (TimeOfDay(
+        endTime: TimeOfDay(
           hour: TimeOfDay.now().hour + hourDuration,
           minute: TimeOfDay.now().minute + minDuration,
-        )),
+        ),
       ),
     );
+    sessionHoursController.clear();
+    sessionMinutesController.clear();
+    sessionNameController.clear();
+    AppsListSelected = {}; 
+    
   }
 
 
   //block sekected apps
-  Future<void> _blockSelected() async {
-    if (AppsListSelected.isEmpty) return;
-
-    try {
-      await _blocker.blockApps(AppsListSelected.toList());
-      SnackBar(content: Text('${AppsListSelected.length} app(s) blocked'));
-      setState(() => AppsListSelected = {});
-      // _refreshBlocked();
-    } catch (e) {
-      // _err('$e');
-    }
-  }
-  
+ 
 
   Future<void> _showAddAppsModal(BuildContext context) async {
     await showModalBottomSheet(
@@ -200,19 +210,7 @@ class _StrictModePageState extends State<StrictModePage> {
     );
   }
 
-  Future<void> getApps() async {
-    try {
-      List<AppInfo> appsList = await InstalledApps.getInstalledApps(
-        excludeSystemApps: false,
-        withIcon: true,
-      );
-      setState(() {
-        AppsList = (appsList);
-      });
-    } on PlatformException {
-      print("Failed to get installed apps.");
-    }
-  }
+  
 
 
 
@@ -504,23 +502,31 @@ class _StrictModePageState extends State<StrictModePage> {
                         ),
                 ),
 
+               
                 GestureDetector(
                   onTap: () async {
-                    _blockSelected();
-                  },
-                  child: Container(child: (Text("block apps"))),
-                ),
-                GestureDetector(
-                  onTap: () async {
-                   
+                    try {
+                      List<BlockSchedule> schedules = await BlockService.blocker
+                          .getSchedules();
+
+                      schedules
+                          .map(
+                            (i) => {BlockService.blocker.disableSchedule(i.id)},
+                          )
+                          .toList();
+                    } catch (e) {}
+                    //disable all schedules
                   },
                   child: Container(child: (Text("Stopp apps"))),
                 ),
-          GestureDetector(onTap: () {
-            
-                    _blockSelected();
-                  
-          },child: Container(child: Text("Block Apps"),))
+                GestureDetector(
+                  onTap: () async {
+           
+                    BlockApps(); //block all the apps
+                    //clear the apps selected
+                  },
+                  child: Container(child: Text("Block App now")),
+                )
               ],
             ),
           ),

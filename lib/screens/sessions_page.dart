@@ -1,7 +1,9 @@
+import 'package:app_blocker/app_blocker.dart';
 import 'package:block_apps/components/anti_scroll_card.dart';
 import 'package:block_apps/components/lock_session_card.dart';
 import 'package:block_apps/components/strict_mode_card.dart';
 import 'package:block_apps/constants/colors.dart';
+import 'package:block_apps/utils/blocker_service.dart';
 import 'package:flutter/material.dart';
 
 class SessionsPage extends StatefulWidget {
@@ -15,8 +17,31 @@ class _SessionsPageState extends State<SessionsPage> {
   bool Strict = false;
   bool Anti = false;
   bool Session = false;
+  int timeRemaining = 0;
 
-  final List<Widget> apps = [
+
+
+  @override
+  void initState() async {
+    super.initState();
+    //getShedule();
+  }
+
+  Future<void> getShedule() async {
+    List<BlockSchedule> schedules = await BlockService.blocker.getSchedules();
+
+    int hourtime = (schedules[0].endTime.hour * 60);
+    int minutetime = (schedules[0].endTime.minute);
+
+    int presentHour = TimeOfDay.now().hour;
+    int presentMinute = TimeOfDay.now().hour;
+    int totalTime = presentHour + presentMinute;
+
+    int totalDuration = hourtime + minutetime;
+    timeRemaining = totalDuration - totalTime;
+  }
+
+  List<Widget> get apps => [
     StrictModeCard(
       Apps: [
         "Facebook",
@@ -30,23 +55,9 @@ class _SessionsPageState extends State<SessionsPage> {
         "Snapchat",
       ],
       date: "Start 2024-10-10",
-      Time: "1 Day:2h:45 min",
+      Time: timeRemaining.toString(),
     ),
-    AntiScrollCard(
-      Apps: [
-        "Facebook",
-        "WhatsApp",
-        "Twitter",
-        "Instagram",
-        "Snapchat",
-        "WhatsApp",
-        "Twitter",
-        "Instagram",
-        "Snapchat",
-      ],
-      date: "Start 2024-10-10",
-      Time: "1 Day:2h:45 min",
-    ),
+   
     LockSessionCard(
       Apps: [
         "Facebook",
@@ -205,21 +216,7 @@ class _SessionsPageState extends State<SessionsPage> {
               ),
 
               //end of the navbar row
-              AntiScrollCard(
-                Apps: [
-                  "Facebook",
-                  "WhatsApp",
-                  "Twitter",
-                  "Instagram",
-                  "Snapchat",
-                  "WhatsApp",
-                  "Twitter",
-                  "Instagram",
-                  "Snapchat",
-                ],
-                date: "Start 2024-10-10",
-                Time: "1 Day:2h:45 min",
-              ),
+              
               StrictModeCard(
                 Apps: [
                   "Facebook",
