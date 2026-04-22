@@ -513,7 +513,7 @@ Future<void> getApps() async {
                           }
                           showDialog(
                             context: context,
-                            builder: (BuildContext context) {
+                            builder: (BuildContext Diacontext) {
                               return AlertDialog(
                                 backgroundColor: color.bgColor,
                                 title: Text(
@@ -521,7 +521,7 @@ Future<void> getApps() async {
                                   style: TextStyle(color: color.btnColor),
                                 ),
                                 content: Text(
-                                  "Once started, you won't be able to access restricted apps for "
+                                  "Once started, you won't be able to access all apps for "
                                   "${(int.tryParse(sessionHoursController.text) ?? 0) > 0 ? '${sessionHoursController.text} hours ' : ''}"
                                   "${((int.tryParse(sessionHoursController.text) ?? 0) > 0 && (int.tryParse(sessionMinutesController.text) ?? 0) > 0) ? 'and ' : ''}"
                                   "${(int.tryParse(sessionMinutesController.text) ?? 0) > 0 ? '${sessionMinutesController.text} minutes' : ''}. Proceed?",
@@ -532,22 +532,85 @@ Future<void> getApps() async {
                                 ),
                                 actions: [
                                   TextButton(
-                                    onPressed: () => Navigator.pop(context),
+                                    onPressed: () => Navigator.pop(Diacontext),
                                     child: const Text("Cancel"),
                                   ),
+                                  
                                   ElevatedButton(
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: color.btnColor,
                                     ),
                                     onPressed: () {
-                                      Navigator.pop(context); // Close dialog
-                                      BlockApps(); // Run the function
+                                      Navigator.pop(Diacontext); // Close dialog
+                                      BlockApps();
+
+                                      // Run the function
+
+                                      //let the user knows if the session is started
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          padding: EdgeInsets.all(30),
+                                          margin: EdgeInsets.only(bottom: 100),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              5,
+                                            ),
+                                          ),
+                                          backgroundColor: const Color.fromARGB(
+                                            255,
+                                            255,
+                                            255,
+                                            255,
+                                          ),
+                                          behavior: SnackBarBehavior.floating,
+                                          content: ElevatedButton.icon(
+                                            style: ElevatedButton.styleFrom(
+                                              padding: const EdgeInsets.all(20),
+                                              backgroundColor:
+                                                  const Color.fromARGB(
+                                                    255,
+                                                    14,
+                                                    205,
+                                                    142,
+                                                  ), // Your custom background
+                                            ),
+                                            onPressed: null,
+                                            // --- ICON ADDED HERE ---
+                                            icon: const Icon(
+                                              Icons.check_circle_outline,
+                                              color: Color.fromARGB(
+                                                255,
+                                                16,
+                                                222,
+                                                78,
+                                              ),
+                                              size: 20,
+                                            ),
+                                            // --- TEXT MOVED TO LABEL ---
+                                            label: Text(
+                                              "Strict Block started",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                color: const Color.fromARGB(
+                                                  255,
+                                                  130,
+                                                  125,
+                                                  125,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
                                     },
                                     child: const Text(
                                       style: TextStyle(color: color.colorText),
                                       "Confirm",
                                     ),
-                                  ),
+                                  )
+                                    
                                 ],
                               );
                             },
