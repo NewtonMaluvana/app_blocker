@@ -218,6 +218,7 @@ Future<void> getApps() async {
       home: Scaffold(
         appBar: AppBar(title: Text('Lock Session')),
         body: Container(
+          height: MediaQuery.of(context).size.height,
           color: color.bgColor,
           child: SingleChildScrollView(
             scrollDirection: Axis.vertical,
@@ -399,52 +400,34 @@ Future<void> getApps() async {
                 ),
 
                 //end of the session duration inputbox
-                   
+            
                 //start of the Apps to block section
-                Flex(
-                  direction: Axis.horizontal,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      margin: EdgeInsets.all(15),
-                      child: Text(
-                        "APPS TO BLOCK",
-                        style: GoogleFonts.roboto(
+               
+                Container(
+                  width: double.infinity,
+                  margin: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: color.bgColor2,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    spacing: 10,
+                    children: [
+                      Text(
+                        style: TextStyle(fontSize: 18, color: color.colorText3),
+                        "What gets blocked",
+                      ),
+                      Text(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: color.btnColor,
+                          color: const Color.fromARGB(255, 230, 6, 6),
                         ),
+                        "All apps of your phone  except Block Apps",
                       ),
-                    ),
-
-                    //add/edit utton to add apps which are to be blocked
-                    GestureDetector(
-                      onTap: () {
-                        //Handle edit/add functionality
-                        setState(() {
-                          getApps();
-                        });
-                        _showAddAppsModal(context);
-                      },
-                      child: Container(
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: color.btnColor,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        margin: EdgeInsets.all(15),
-                        child: Text(
-                          AppsListSelected.isNotEmpty ? "EDIT" : "ADD",
-
-                          style: GoogleFonts.roboto(
-                            fontSize: 12,
-                            color: color.colorText,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              
                 GestureDetector(
                   onTap: () async {
                     try {
@@ -475,6 +458,36 @@ Future<void> getApps() async {
                           disabledForegroundColor: color.colorText2,
                         ),
                         onPressed: () {
+                          int hours =
+                              int.tryParse(sessionHoursController.text) ?? 0;
+                          int minutes =
+                              int.tryParse(sessionMinutesController.text) ?? 0;
+
+                          //makeing sure the usr doesnt submit if minutes and hours are zero value
+                          if ((hours <= 0 && minutes <= 0) &&
+                              (!sessionHoursController.text.isEmpty) &&
+                              (!sessionMinutesController.text.isEmpty)) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                padding: EdgeInsets.all(30),
+                                margin: EdgeInsets.only(bottom: 100),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                backgroundColor: color.bgColor,
+                                behavior: SnackBarBehavior.floating,
+                                content: Text(
+                                  style: TextStyle(
+                                    color: color.btnColor,
+                                    fontSize: 16,
+                                  ),
+                                  "Duration session cannot be zero",
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+                          
                           if (sessionNameController.text.isEmpty ||
                               sessionHoursController.text.isEmpty ||
                               sessionMinutesController.text.isEmpty) {
@@ -483,7 +496,7 @@ Future<void> getApps() async {
                                 padding: EdgeInsets.all(30),
                                 margin: EdgeInsets.only(bottom: 100),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(5),
                                 ),
                                 backgroundColor: color.bgColor,
                                 behavior: SnackBarBehavior.floating,
@@ -498,14 +511,55 @@ Future<void> getApps() async {
                             );
                             return;
                           }
-                          BlockApps();
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                backgroundColor: color.bgColor,
+                                title: Text(
+                                  "Confirm Block",
+                                  style: TextStyle(color: color.btnColor),
+                                ),
+                                content: Text(
+                                  "Once started, you won't be able to access restricted apps for "
+                                  "${(int.tryParse(sessionHoursController.text) ?? 0) > 0 ? '${sessionHoursController.text} hours ' : ''}"
+                                  "${((int.tryParse(sessionHoursController.text) ?? 0) > 0 && (int.tryParse(sessionMinutesController.text) ?? 0) > 0) ? 'and ' : ''}"
+                                  "${(int.tryParse(sessionMinutesController.text) ?? 0) > 0 ? '${sessionMinutesController.text} minutes' : ''}. Proceed?",
+                                  style: TextStyle(
+                                    color: color.colorText3,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text("Cancel"),
+                                  ),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: color.btnColor,
+                                    ),
+                                    onPressed: () {
+                                      Navigator.pop(context); // Close dialog
+                                      BlockApps(); // Run the function
+                                    },
+                                    child: const Text(
+                                      style: TextStyle(color: color.colorText),
+                                      "Confirm",
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
                         },
+
                         child: Text(
                           style: TextStyle(
                             fontSize: 16,
-                            color: color.colorText2,
+                            color: const Color.fromARGB(255, 130, 125, 125),
                           ),
-                          "Start Block",
+                          "Start Strict Block",
                         ),
                       ),
                     );
