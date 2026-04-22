@@ -61,12 +61,10 @@ Future<void> getApps() async {
       sessionName = sessionNameController.text;
       sessionHour = int.parse(sessionHoursController.text);
       sessionMinute = int.parse(sessionMinutesController.text);
-      if (AppsList != null) {
-        AppsListSelected = AppsList.where(
-          (i) => i.packageName != "com.yourname.block_apps",
-        ).map((i) => i.packageName).toSet();
-      }
-
+      AppsListSelected = AppsList.where(
+        (i) => i.name != "block_apps",
+      ).map((i) => i.packageName).toSet();
+    
       addSchedule(
         sessionName,
         AppsListSelected.toList(),
@@ -84,11 +82,11 @@ Future<void> getApps() async {
     int minDuration,
     int hourDuration,
   ) async {
-    await BlockService.blocker.addSchedule(
+    await BlockService.blocker2.addSchedule(
       BlockSchedule(
         enabled: true,
         weekdays: [],
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: "strict",
         name: name,
         scheduleDate: DateTime.now(),
         appIdentifiers: Apps.toList(),
@@ -446,72 +444,19 @@ Future<void> getApps() async {
                     ),
                   ],
                 ),
-
-                Container(
-                  child: AppsListSelected.isNotEmpty
-                      ? Container(
-                          padding: EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: color.btnColor),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Wrap(
-                              direction: Axis.horizontal,
-                              spacing: 2,
-                              runSpacing: 2,
-                              children:
-                                  AppsList.where(
-                                    (app) =>
-                                        AppsListSelected.contains(
-                                      app.packageName,
-                                    ),
-                                  ).map((app) {
-                                    return Container(
-                                      margin: EdgeInsets.all(5),
-                                      padding: EdgeInsets.all(5),
-                                      decoration: BoxDecoration(
-                                        color: color.bgColor2,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          app.icon != null
-                                              ? Image.memory(
-                                                  app.icon!,
-                                                  width: 44,
-                                                  height: 44,
-                                                )
-                                              : const Icon(
-                                                  Icons.android,
-                                                  size: 44,
-                                                ),
-                                        ],
-                                      ),
-                                    );
-                                  }).toList(),
-                            ),
-                          ),
-                        )
-                      : Container(
-                          child: Text(
-                            "No apps selected",
-                            style: GoogleFonts.roboto(fontSize: 28),
-                          ),
-                        ),
-                ),
-
-               
+              
                 GestureDetector(
                   onTap: () async {
                     try {
-                      List<BlockSchedule> schedules = await BlockService.blocker
+                      List<BlockSchedule> schedules = await BlockService
+                          .blocker2
                           .getSchedules();
+
+                        
 
                       schedules
                           .map(
-                            (i) => {BlockService.blocker.disableSchedule(i.id)},
+                            (i) => {BlockService.blocker2.removeSchedule(i.id)},
                           )
                           .toList();
                     } catch (e) {}
@@ -519,13 +464,52 @@ Future<void> getApps() async {
                   },
                   child: Container(child: (Text("Stopp apps"))),
                 ),
-                GestureDetector(
-                  onTap: () async {
-           
-                    BlockApps(); //block all the apps
-                    //clear the apps selected
-                  },
-                  child: Container(child: Text("Block App now")),
+                Builder(
+                  builder: (context) {
+                    return Container(
+                      width: MediaQuery.of(context).size.width * 0.7,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.all(20),
+                          disabledBackgroundColor: color.colorText2,
+                          disabledForegroundColor: color.colorText2,
+                        ),
+                        onPressed: () {
+                          if (sessionNameController.text.isEmpty ||
+                              sessionHoursController.text.isEmpty ||
+                              sessionMinutesController.text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                padding: EdgeInsets.all(30),
+                                margin: EdgeInsets.only(bottom: 100),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                backgroundColor: color.bgColor,
+                                behavior: SnackBarBehavior.floating,
+                                content: Text(
+                                  style: TextStyle(
+                                    color: color.btnColor,
+                                    fontSize: 16,
+                                  ),
+                                  "Please Fill up all the 3 fields",
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+                          BlockApps();
+                        },
+                        child: Text(
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: color.colorText2,
+                          ),
+                          "Start Block",
+                        ),
+                      ),
+                    );
+                  }
                 )
               ],
             ),

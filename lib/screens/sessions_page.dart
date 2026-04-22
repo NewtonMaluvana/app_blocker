@@ -1,5 +1,6 @@
+import 'dart:async';
+
 import 'package:app_blocker/app_blocker.dart';
-import 'package:block_apps/components/anti_scroll_card.dart';
 import 'package:block_apps/components/lock_session_card.dart';
 import 'package:block_apps/components/strict_mode_card.dart';
 import 'package:block_apps/constants/colors.dart';
@@ -17,28 +18,74 @@ class _SessionsPageState extends State<SessionsPage> {
   bool Strict = false;
   bool Anti = false;
   bool Session = false;
-  int timeRemaining = 0;
+  String timeRemaining = "00:00:00";
+  TimeOfDay endTime = TimeOfDay(hour: 2, minute: 0);
+  late Timer _timer; // ✅ add timer
+
 
 
 
   @override
-  void initState() async {
+  void initState() {
     super.initState();
-    //getShedule();
+    _loadSchedule();
+    // ✅ Call a void wrapper
+  }
+
+  // ✅ New void method that updates state
+  Future<void> _loadSchedule() async {
+    await getShedule();
+  }
+
+  String getTimeRemaining(TimeOfDay end) {
+    final now = DateTime.now();
+
+    DateTime targetDateTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      end.hour,
+      end.minute,
+    );
+
+    // ✅ If end time has passed, show 00:00:00 instead of adding a day
+    if (targetDateTime.isBefore(now)) {
+      return "00:00:00";
+    }
+
+    final difference = targetDateTime.difference(now);
+
+    String hours = difference.inHours.toString().padLeft(2, '0');
+    String minutes = difference.inMinutes
+        .remainder(60)
+        .toString()
+        .padLeft(2, '0');
+    String seconds = difference.inSeconds
+        .remainder(60)
+        .toString()
+        .padLeft(2, '0');
+
+    return "$hours:$minutes:$seconds";
   }
 
   Future<void> getShedule() async {
-    List<BlockSchedule> schedules = await BlockService.blocker.getSchedules();
+    List<BlockSchedule> schedules = await BlockService.blocker2.getSchedules();
 
-    int hourtime = (schedules[0].endTime.hour * 60);
-    int minutetime = (schedules[0].endTime.minute);
+    final strict = schedules.firstWhere(
+      (i) => i.id == "strict",
+      // handle if not found
+    );
 
-    int presentHour = TimeOfDay.now().hour;
-    int presentMinute = TimeOfDay.now().hour;
-    int totalTime = presentHour + presentMinute;
-
-    int totalDuration = hourtime + minutetime;
-    timeRemaining = totalDuration - totalTime;
+    setState(() {
+      endTime = strict.endTime; // ✅ actually assign endTime
+      timeRemaining = getTimeRemaining(strict.endTime);
+      _timer = Timer.periodic(Duration(seconds: 1), (_) {
+        setState(() {
+          timeRemaining = getTimeRemaining(endTime);
+        });
+      });
+    });
+  
   }
 
   List<Widget> get apps => [
@@ -55,7 +102,7 @@ class _SessionsPageState extends State<SessionsPage> {
         "Snapchat",
       ],
       date: "Start 2024-10-10",
-      Time: timeRemaining.toString(),
+      Time: "",
     ),
    
     LockSessionCard(
@@ -127,49 +174,7 @@ class _SessionsPageState extends State<SessionsPage> {
                       ),
                     ),
                   ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          Anti = true;
-                          Strict = false;
-                          Session = false;
-                        });
-                      },
-                      child: AnimatedContainer(
-                        duration: Duration(milliseconds: 500),
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: Anti
-                                ? BorderSide(color: color.btnColor, width: 2)
-                                : BorderSide(
-                                    color: DefaultSelectionStyle.defaultColor,
-                                    width: 1,
-                                  ),
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.phone_android,
-                              color: Anti
-                                  ? color.btnColor
-                                  : DefaultSelectionStyle.defaultColor,
-                            ),
-                            Text(
-                              "Ant-scroll",
-                              style: TextStyle(
-                                color: Anti
-                                    ? color.btnColor
-                                    : DefaultSelectionStyle.defaultColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
@@ -230,7 +235,7 @@ class _SessionsPageState extends State<SessionsPage> {
                   "Snapchat",
                 ],
                 date: "Start 2024-10-10",
-                Time: "1 Day:2h:45 min",
+                Time: timeRemaining,
               ),
               LockSessionCard(
                 Apps: [
