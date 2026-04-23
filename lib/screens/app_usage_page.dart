@@ -139,10 +139,10 @@ class _AppUsagePageState extends State<AppUsagePage> {
 
   Widget getList() {
     return ListItemSelector(
-      focusedBorderColor: color.btnColor,
+      focusedBorderColor: Colors.transparent,
       borderRadius: 25,
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
-      borderColor: color.btnColor,
+      borderColor: Colors.transparent,
       selectedValue: selectedValue,
       items: items,
       hintText: "Select time range",
@@ -183,8 +183,14 @@ class _AppUsagePageState extends State<AppUsagePage> {
               Row(
                 children: [
                   Container(
+                    margin: EdgeInsets.only(left: 15),
+                    decoration: BoxDecoration(
+                      color: color.bgColor2,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                   
                     padding: const EdgeInsets.all(5),
-                    width: 300,
+                    width: MediaQuery.of(context).size.width * 0.6,
                     child: getList(),
                   ),
                 ],

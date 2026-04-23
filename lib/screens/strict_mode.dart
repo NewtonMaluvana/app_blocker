@@ -63,7 +63,7 @@ Future<void> getApps() async {
       sessionHour = int.parse(sessionHoursController.text);
       sessionMinute = int.parse(sessionMinutesController.text);
       AppsListSelected = AppsList.where(
-        (i) => i.name != "block_apps",
+        (i) => i.name.trim() != "Block Apps".trim(),
       ).map((i) => i.packageName).toSet();
     
       addSchedule(
@@ -313,7 +313,7 @@ Future<void> getApps() async {
                             color: Color.fromARGB(255, 152, 154, 154),
                           ),
                           hintText: "Name this session",
-                          fillColor: const Color.fromARGB(255, 51, 49, 49),
+                          fillColor: color.btnColor,
                           filled: true,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -361,7 +361,7 @@ Future<void> getApps() async {
                               color: const Color.fromARGB(255, 152, 154, 154),
                             ),
                             hintText: "Hours",
-                            fillColor: const Color.fromARGB(255, 51, 49, 49),
+                            fillColor: color.btnColor,
                             filled: true,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -386,7 +386,7 @@ Future<void> getApps() async {
                               color: const Color.fromARGB(255, 152, 154, 154),
                             ),
                             hintText: "Minutes",
-                            fillColor: const Color.fromARGB(255, 51, 49, 49),
+                            fillColor: color.btnColor,
                             filled: true,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -454,9 +454,10 @@ Future<void> getApps() async {
                       width: MediaQuery.of(context).size.width * 0.7,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.all(20),
+                          padding: EdgeInsets.all(16),
                           disabledBackgroundColor: color.colorText2,
                           disabledForegroundColor: color.colorText2,
+                          backgroundColor: color.btnColor,
                         ),
                         onPressed: () {
                           int hours =
@@ -581,7 +582,7 @@ Future<void> getApps() async {
                         child: Text(
                           style: TextStyle(
                             fontSize: 16,
-                            color: const Color.fromARGB(255, 130, 125, 125),
+                            color: const Color.fromARGB(255, 255, 255, 255),
                           ),
                           "Start Strict Block",
                         ),

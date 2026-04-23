@@ -1,5 +1,6 @@
 import 'package:app_blocker/app_blocker.dart' hide AppInfo;
 import 'package:block_apps/constants/colors.dart';
+import 'package:block_apps/utils/blocker_service.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,51 +19,92 @@ class LockSessionPage extends StatefulWidget {
 }
 
 class _LockSessionPageState extends State<LockSessionPage> {
-  TextEditingController sessionEditingController = TextEditingController();
+  TextEditingController sessionHoursController = TextEditingController();
+  TextEditingController sessionNameController = TextEditingController();
+  TextEditingController sessionMinutesController = TextEditingController();
   
-  final _blocker = AppBlocker.instance;
-  int _Hours = 20;
-  int _Minutes = 20;
-
+ 
+  final int _Hours = 20;
+  final int _Minutes = 20;
+  String sessionName = "";
+  int sessionHour = 0;
+  int sessionMinute = 0;
   bool isHours = false;
   List<AppInfo> AppsList = [];
   Set<String> AppsListSelected = {};
   @override
   void initState() {
     super.initState();
-    loadSelectedApps();
+  
   }
   //get the modal screen to add screens
-
   //getting the selcted apps from the phone storage
-  Future<void> loadSelectedApps() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final savedApps = prefs.getStringList('blocked_apps') ?? [];
-    setState(() {
-      AppsListSelected = savedApps.toSet();
-    });
-  }
+ 
 
   //saving the blocked apps list to the phone storage
-  Future<void> saveSelctedApps() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList("bloced_apps", AppsListSelected.toList());
-  }
-
-  //block sekected apps
-
-  Future<void> _blockSelected() async {
-    if (AppsListSelected.isEmpty) return;
-
+  //add schedule
+  Future<void> getApps() async {
     try {
-      await _blocker.blockApps(AppsListSelected.toList());
-      SnackBar(content: Text('${AppsListSelected.length} app(s) blocked'));
-      setState(() => AppsListSelected = {});
-      // _refreshBlocked();
-    } catch (e) {
-      // _err('$e');
+      List<AppInfo> appsList = await InstalledApps.getInstalledApps(
+        excludeSystemApps: false,
+        withIcon: true,
+      );
+      setState(() {     
+        AppsList = appsList.where((i) => i.name != "Block Apps").toList();
+        // (appsList.removeWhere((i) => {i.name == ""}));
+      });
+    } on PlatformException {
+      print("Failed to get installed apps.");
     }
   }
+
+  Future<void> BlockApps() async {
+    try {
+      await getApps();
+
+      sessionName = sessionNameController.text;
+      sessionHour = int.parse(sessionHoursController.text);
+      sessionMinute = int.parse(sessionMinutesController.text);
+     
+
+      addSchedule(
+        sessionName,
+        AppsListSelected.toList(),
+        sessionMinute,
+        sessionHour,
+      );
+    } catch (e) {}
+  }
+
+  Future<void> addSchedule(
+    String name,
+    List<String> Apps,
+    int minDuration,
+    int hourDuration,
+  ) async {
+    await BlockService.blocker2.addSchedule(
+      BlockSchedule(
+        enabled: true,
+        weekdays: [],
+        id: "strict",
+        name: name,
+        scheduleDate: DateTime.now(),
+        appIdentifiers: Apps.toList(),
+        startTime: TimeOfDay.now(),
+        endTime: TimeOfDay(
+          hour: TimeOfDay.now().hour + hourDuration,
+          minute: TimeOfDay.now().minute + minDuration,
+        ),
+      ),
+    );
+    sessionHoursController.clear();
+    sessionMinutesController.clear();
+    sessionNameController.clear();
+    AppsListSelected = {}; 
+    
+  }
+
+
  
   Future<void> _showAddAppsModal(BuildContext context) async {
     await showModalBottomSheet(
@@ -111,9 +153,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
                                     }
                                   });
 
-                                  setState(() {
-                                    saveSelctedApps();
-                                  });
+                                  
                                 },
                                 child: Container(
                                   padding: EdgeInsets.all(8),
@@ -139,6 +179,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
                                   ),
 
                                   child: app.icon != null
+                                      
                                       ? Image.memory(
                                           app.icon!,
                                           width: 4,
@@ -166,19 +207,6 @@ class _LockSessionPageState extends State<LockSessionPage> {
     );
   }
 
-  Future<void> getApps() async {
-    try {
-      List<AppInfo> appsList = await InstalledApps.getInstalledApps(
-        excludeSystemApps: false,
-        withIcon: true,
-      );
-      setState(() {
-        AppsList = (appsList);
-      });
-    } on PlatformException {
-      print("Failed to get installed apps.");
-    }
-  }
 
 
 
@@ -269,13 +297,14 @@ class _LockSessionPageState extends State<LockSessionPage> {
                         ),
                         inputDecoration: InputDecoration(
                           hintText: "Name this session",
-                          fillColor: const Color.fromARGB(255, 51, 49, 49),
+                          hintStyle: TextStyle(color: color.colorText2),
+                          fillColor: color.btnColor,
                           filled: true,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        textEditingController: sessionEditingController,
+                        textEditingController: sessionNameController,
                         suggestions: [""],
                         toDisplayString: (item) => item,
                       ),
@@ -301,19 +330,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
                         ],
                       ),
 
-                      NumberPicker(
-                        infiniteLoop: true,
-                        value: isHours ? _Hours : _Minutes,
-                        minValue: 0,
-                        maxValue: isHours ? 72 : 59,
-                        onChanged: (value) => setState(() {
-                          if (isHours) {
-                            _Hours = value;
-                          } else {
-                            _Minutes = value;
-                          }
-                        }),
-                      ),
+                     
                       Flex(
                         direction: Axis.horizontal,
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -509,9 +526,24 @@ class _LockSessionPageState extends State<LockSessionPage> {
 
                 GestureDetector(
                   onTap: () async {
-                    _blockSelected();
+                    BlockApps();
                   },
                   child: Container(child: (Text("block apps"))),
+                ),
+
+                Container(
+                  width: MediaQuery.of(context).size.width * 0.6,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: color.btnColor,
+                    ),
+
+                    onPressed: () {},
+                    child: Text(
+                      "Add Session",
+                      style: TextStyle(color: color.colorText),
+                    ),
+                  ),
                 ),
                 GestureDetector(
                   onTap: () async {

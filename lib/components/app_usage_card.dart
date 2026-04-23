@@ -28,6 +28,12 @@ class _AppUsageCardState extends State<AppUsageCard> {
       decoration: BoxDecoration(
         color: color.bgColor2,
         borderRadius: BorderRadius.circular(15),
+        border: Border(
+          top: BorderSide(
+            color: const Color.fromARGB(255, 128, 0, 255),
+            width: 4,
+          ),
+        )
         // border: Border.all(color: color.btnColor),
       ),
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
@@ -44,7 +50,7 @@ class _AppUsageCardState extends State<AppUsageCard> {
                   borderRadius: BorderRadius.circular(10),
                   color: color.bgColor
                 ),
-                child: Image.memory(widget.icon, width: 12, height: 12),
+                child: Image.memory(widget.icon, width: 15, height: 15),
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,7 +62,11 @@ class _AppUsageCardState extends State<AppUsageCard> {
                     children: [
                       Text(
                         widget.AppName,
-                        style: TextStyle(fontSize: 16, color: color.btnColor),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: const Color.fromARGB(255, 52, 52, 52),
+                        ),
                       ),
                     ],
                   ),
