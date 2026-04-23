@@ -55,6 +55,8 @@ dependencies:
   shared_preferences: ^2.5.5
   rename_app: ^1.6.5
   app_blocker: ^2.1.0
+  awesome_snackbar_content: ^0.1.8
+  app_usage: ^4.1.0
 
 
 dev_dependencies:

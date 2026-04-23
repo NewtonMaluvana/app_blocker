@@ -1,7 +1,8 @@
 import 'package:app_blocker/app_blocker.dart' hide AppInfo;
 import 'package:block_apps/constants/colors.dart';
 import 'package:block_apps/utils/blocker_service.dart';
-
+import 'package:flutter/material.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -551,58 +552,18 @@ Future<void> getApps() async {
                                         context,
                                       ).showSnackBar(
                                         SnackBar(
-                                          padding: EdgeInsets.all(30),
-                                          margin: EdgeInsets.only(bottom: 100),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              5,
-                                            ),
-                                          ),
-                                          backgroundColor: const Color.fromARGB(
-                                            255,
-                                            255,
-                                            255,
-                                            255,
-                                          ),
+                                          /// need to set following properties for best effect of awesome_snackbar_content
+                                          elevation: 0,
                                           behavior: SnackBarBehavior.floating,
-                                          content: ElevatedButton.icon(
-                                            style: ElevatedButton.styleFrom(
-                                              padding: const EdgeInsets.all(20),
-                                              backgroundColor:
-                                                  const Color.fromARGB(
-                                                    255,
-                                                    14,
-                                                    205,
-                                                    142,
-                                                  ), // Your custom background
-                                            ),
-                                            onPressed: null,
-                                            // --- ICON ADDED HERE ---
-                                            icon: const Icon(
-                                              Icons.check_circle_outline,
-                                              color: Color.fromARGB(
-                                                255,
-                                                16,
-                                                222,
-                                                78,
-                                              ),
-                                              size: 20,
-                                            ),
-                                            // --- TEXT MOVED TO LABEL ---
-                                            label: Text(
-                                              "Strict Block started",
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                color: const Color.fromARGB(
-                                                  255,
-                                                  130,
-                                                  125,
-                                                  125,
-                                                ),
-                                              ),
-                                            ),
+                                          backgroundColor: Colors.transparent,
+                                          content: AwesomeSnackbarContent(
+                                            title: 'Success',
+                                            message: 'Strict block started ',
+
+                                            /// change contentType to ContentType.success, ContentType.warning or ContentType.help for variants
+                                            contentType: ContentType.success,
                                           ),
-                                        ),
+                                        )
                                       );
                                     },
                                     child: const Text(
