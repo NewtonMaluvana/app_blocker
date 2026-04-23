@@ -1,4 +1,5 @@
 {
     "java.debug.settings.exceptionBreakpoint.skipClasses": [],
-    "editor.showUnused": false
+    "editor.showUnused": false,
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

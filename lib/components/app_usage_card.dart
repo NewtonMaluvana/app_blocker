@@ -1,9 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:block_apps/constants/colors.dart';
 import 'package:flutter/material.dart';
 
 class AppUsageCard extends StatefulWidget {
   final String AppName;
-  final IconData icon;
+  final Uint8List icon;
   final String Time;
   final String Date;
   const AppUsageCard({
@@ -40,9 +42,9 @@ class _AppUsageCardState extends State<AppUsageCard> {
                 padding: EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: color.btnColor),
+                  color: color.bgColor
                 ),
-                child: Icon(widget.icon, size: 50, color: color.btnColor),
+                child: Image.memory(widget.icon, width: 12, height: 12),
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,7 +54,10 @@ class _AppUsageCardState extends State<AppUsageCard> {
                     direction: Axis.horizontal,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Text(widget.AppName, style: TextStyle(fontSize: 20)),
+                      Text(
+                        widget.AppName,
+                        style: TextStyle(fontSize: 16, color: color.btnColor),
+                      ),
                     ],
                   ),
                   Flex(
@@ -62,7 +67,7 @@ class _AppUsageCardState extends State<AppUsageCard> {
                     children: [
                       Text(
                         "Last opened 12 min ago",
-                        style: TextStyle(fontSize: 12, color: color.btnColor),
+                        style: TextStyle(fontSize: 12, color: color.colorText2),
                       ),
                     ],
                   ),
@@ -73,12 +78,12 @@ class _AppUsageCardState extends State<AppUsageCard> {
           Column(
             children: [
               Text(
-                widget.Time,
-                style: TextStyle(color: color.colorText2, fontSize: 20),
+                widget.Time.toString(),
+                style: TextStyle(color: color.colorText2, fontSize: 14),
               ),
               Text(
                 widget.Date,
-                style: TextStyle(fontSize: 14, color: color.colorText3),
+                style: TextStyle(fontSize: 10, color: color.colorText3),
               ),
             ],
           ),

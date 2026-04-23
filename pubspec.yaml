@@ -57,6 +57,8 @@ dependencies:
   app_blocker: ^2.1.0
   awesome_snackbar_content: ^0.1.8
   app_usage: ^4.1.0
+  usage_tracker: ^0.1.0
+  android_intent_plus: ^6.0.0
 
 
 dev_dependencies:
