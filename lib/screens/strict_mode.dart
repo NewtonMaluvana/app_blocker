@@ -450,7 +450,7 @@ Future<void> getApps() async {
                 ),
                 Builder(
                   builder: (context) {
-                    return Container(
+                    return SizedBox(
                       width: MediaQuery.of(context).size.width * 0.7,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -467,8 +467,8 @@ Future<void> getApps() async {
 
                           //makeing sure the usr doesnt submit if minutes and hours are zero value
                           if ((hours <= 0 && minutes <= 0) &&
-                              (!sessionHoursController.text.isEmpty) &&
-                              (!sessionMinutesController.text.isEmpty)) {
+                              (sessionHoursController.text.isNotEmpty) &&
+                              (sessionMinutesController.text.isNotEmpty)) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 padding: EdgeInsets.all(30),

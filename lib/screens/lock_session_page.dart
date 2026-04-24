@@ -315,112 +315,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
                 //end of the session name inputbox
 
                 //start of the session duration inputbox
-                Container(
-                  padding: EdgeInsets.all(15),
-                  child: Column(
-                    children: [
-                      Flex(
-                        direction: Axis.horizontal,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Text(
-                            "SESSION DURATION",
-                            style: GoogleFonts.roboto(fontSize: 16),
-                          ),
-                        ],
-                      ),
-
-                     
-                      Flex(
-                        direction: Axis.horizontal,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                isHours = true;
-                              });
-                            },
-                            child: Container(
-                              margin: EdgeInsets.all(15),
-                              child: Column(
-                                children: [
-                                  Text("Hours"),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 30,
-                                      vertical: 12,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Color.fromARGB(255, 51, 49, 49),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      _Hours.toString(),
-                                      style: GoogleFonts.roboto(
-                                        color: color.colorText,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(""),
-                              Container(
-                                child: Text(
-                                  ":",
-                                  style: TextStyle(
-                                    color: color.colorText3,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 20,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                isHours = false;
-                              });
-                            },
-                            child: Container(
-                              margin: EdgeInsets.all(15),
-                              child: Column(
-                                children: [
-                                  Text("Minutes"),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 30,
-                                      vertical: 12,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Color.fromARGB(255, 51, 49, 49),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      _Minutes.toString(),
-                                      style: GoogleFonts.roboto(
-                                        color: color.colorText,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+                
 
                 //end of the session duration inputbox
 
@@ -473,6 +368,10 @@ class _LockSessionPageState extends State<LockSessionPage> {
                   child: AppsListSelected.isNotEmpty
                       ? Container(
                           padding: EdgeInsets.all(10),
+                          margin: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
                           decoration: BoxDecoration(
                             border: Border.all(color: color.btnColor),
                             borderRadius: BorderRadius.circular(12),
@@ -531,18 +430,49 @@ class _LockSessionPageState extends State<LockSessionPage> {
                   child: Container(child: (Text("block apps"))),
                 ),
 
-                Container(
+                SizedBox(
                   width: MediaQuery.of(context).size.width * 0.6,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: color.btnColor,
-                    ),
-
-                    onPressed: () {},
-                    child: Text(
-                      "Add Session",
-                      style: TextStyle(color: color.colorText),
-                    ),
+                  child: Builder(
+                    builder: (context) {
+                      return ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: color.btnColor,
+                        ),
+                      
+                        onPressed: () {
+                          if (AppsListSelected.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                padding: EdgeInsets.all(10),
+                                margin: EdgeInsets.only(bottom: 100),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                backgroundColor: color.bgColor,
+                                behavior: SnackBarBehavior.floating,
+                                content: Text(
+                                  style: TextStyle(
+                                    color: const Color.fromARGB(
+                                      255,
+                                      222,
+                                      23,
+                                      23,
+                                    ),
+                                    fontSize: 16,
+                                  ),
+                                  "Please add apps to block",
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+                        },
+                        child: Text(
+                          "Add Session",
+                          style: TextStyle(color: color.colorText),
+                        ),
+                      );
+                    }
                   ),
                 ),
                 GestureDetector(

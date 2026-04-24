@@ -63,11 +63,9 @@ class _StrictModeCardState extends State<StrictModeCard> {
       // handle if not found
     );
 
-    if (strict != null) {
-      setState(() {
-        endTime = strict.endTime; // ✅ directly assign endTime
-      });
-    }
+    setState(() {
+      endTime = strict.endTime; // ✅ directly assign endTime
+    });
   }
 
   @override
