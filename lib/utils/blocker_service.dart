@@ -4,6 +4,7 @@ class BlockService {
 
 
 static final AppBlocker blocker2 = AppBlocker.instance;
+static final AppBlocker blocker = AppBlocker.instance;
 
 
 }

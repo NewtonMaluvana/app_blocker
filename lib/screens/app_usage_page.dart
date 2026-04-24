@@ -6,7 +6,7 @@ import 'package:installed_apps/installed_apps.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:list_item_selector/list_item_selector.dart';
 import 'package:android_intent_plus/android_intent.dart';
-
+import 'package:styled_drop_down/styled_drop_down.dart';
 // Your local imports
 import 'package:block_apps/components/app_usage_card.dart';
 import 'package:block_apps/constants/colors.dart';
@@ -137,19 +137,31 @@ class _AppUsagePageState extends State<AppUsagePage> {
   }
 
   Widget getList() {
-    return ListItemSelector(
-      focusedBorderColor: Colors.transparent,
-      borderRadius: 25,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
-      borderColor: Colors.transparent,
-      selectedValue: selectedValue,
-      items: items,
-      hintText: "Select time range",
-      onChanged: (newValue) {
-        if (newValue != null) {
-          setState(() => selectedValue = newValue);
+    // return ListItemSelector(
+    //   focusedBorderColor: Colors.transparent,
+    //   borderRadius: 25,
+    //   contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+    //   borderColor: Colors.transparent,
+    //   selectedValue: selectedValue,
+    //   items: items,
+    //   hintText: "Select time range",
+    //   onChanged: (newValue) {
+    //     if (newValue != null) {
+    //       setState(() => selectedValue = newValue);
+    //       _fetchUsageData();
+    //     }
+    //   },
+    // );
+
+    return StyledDropDown(
+      menuRightPadding: 1.0,
+      value: selectedValue,
+      items: ["Today", "This week", "This Month"],
+      onChanged: (value) {
+        setState(() {
+          selectedValue = value;
           _fetchUsageData();
-        }
+        });
       },
     );
   }
@@ -189,7 +201,7 @@ class _AppUsagePageState extends State<AppUsagePage> {
                     ),
                    
                     padding: const EdgeInsets.all(5),
-                    width: MediaQuery.of(context).size.width * 0.6,
+                    width: MediaQuery.of(context).size.width * 0.8,
                     child: getList(),
                   ),
                 ],

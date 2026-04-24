@@ -83,7 +83,7 @@ Future<void> getApps() async {
     int minDuration,
     int hourDuration,
   ) async {
-    await BlockService.blocker2.addSchedule(
+    await BlockService.blocker.addSchedule(
       BlockSchedule(
         enabled: true,
         weekdays: [],
@@ -107,110 +107,6 @@ Future<void> getApps() async {
 
 
   //block sekected apps
- 
-
-  Future<void> _showAddAppsModal(BuildContext context) async {
-    await showModalBottomSheet(
-      isScrollControlled: true,
-      backgroundColor: color.bgColor,
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    "SELECT APPS TO BLOCK",
-                    style: GoogleFonts.poppins(fontSize: 18),
-                  ),
-                ),
-                Container(
-                  margin: EdgeInsets.all(15),
-                  padding: EdgeInsets.all(10),
-
-                  child: SingleChildScrollView(
-                    child: GridView.builder(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 5, // 4 apps per row
-                            crossAxisSpacing: 8,
-                            mainAxisSpacing: 8,
-                            // height relative to width
-                          ),
-                      itemBuilder: AppsList.isNotEmpty
-                          ? (context, index) {
-                              final app = AppsList[index];
-                              return GestureDetector(
-                                onTap: () {
-                                  // Handleapp selection
-                                  setModalState(() {
-                                    if (AppsListSelected.contains(
-                                      app.packageName,
-                                    )) {
-                                      AppsListSelected.remove(app.packageName);
-                                    } else {
-                                      AppsListSelected.add(app.packageName);
-                                    }
-                                  });
-
-                                 
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.all(8),
-
-                                  decoration: BoxDecoration(
-                                    color:
-                                        AppsListSelected.contains(
-                                          app.packageName,
-                                        )
-                                        ? const Color.fromARGB(
-                                            255,
-                                            45,
-                                            201,
-                                            152,
-                                          )
-                                        : const Color.fromARGB(
-                                            255,
-                                            212,
-                                            212,
-                                            212,
-                                          ),
-                                    borderRadius: BorderRadius.circular(25),
-                                  ),
-
-                                  child: app.icon != null
-                                      ? Image.memory(
-                                          app.icon!,
-                                          width: 4,
-                                          height: 4,
-                                        )
-                                      : const Icon(Icons.android, size: 4),
-                                ),
-                              );
-                            }
-                          : (context, index) {
-                              return Container(child: Text("No apps found"));
-                            },
-                      itemCount: AppsList.length,
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                    ),
-                  ),
-                ),
-
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  
-
 
 
   @override

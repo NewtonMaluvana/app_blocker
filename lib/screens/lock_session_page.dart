@@ -4,13 +4,14 @@ import 'package:block_apps/utils/blocker_service.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:auto_input_box/auto_input_box.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:numberpicker/numberpicker.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:items_selector/items_selector.dart';
 class LockSessionPage extends StatefulWidget {
   const LockSessionPage({super.key});
 
@@ -23,7 +24,10 @@ class _LockSessionPageState extends State<LockSessionPage> {
   TextEditingController sessionNameController = TextEditingController();
   TextEditingController sessionMinutesController = TextEditingController();
   
- 
+  bool isOneTime = false; //whther the session is one time
+  List<String> days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  Set<int> weekdays = {1, 2, 3, 4, 5, 6, 7};
+  DateTime scheduleDate = DateTime.now();
   final int _Hours = 20;
   final int _Minutes = 20;
   String sessionName = "";
@@ -32,6 +36,10 @@ class _LockSessionPageState extends State<LockSessionPage> {
   bool isHours = false;
   List<AppInfo> AppsList = [];
   Set<String> AppsListSelected = {};
+  TimeOfDay start = const TimeOfDay(hour: 9, minute: 0);
+  TimeOfDay end = const TimeOfDay(hour: 17, minute: 0);
+
+
   @override
   void initState() {
     super.initState();
@@ -39,8 +47,27 @@ class _LockSessionPageState extends State<LockSessionPage> {
   }
   //get the modal screen to add screens
   //getting the selcted apps from the phone storage
- 
+  Future<void> _pickTime(bool isStart) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: isStart ? start : end,
+    );
+    if (picked != null) {
+      setState(() => isStart ? start = picked : end = picked);
+    }
+  }
 
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: scheduleDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null) {
+      setState(() => scheduleDate = picked);
+    }
+  }
   //saving the blocked apps list to the phone storage
   //add schedule
   Future<void> getApps() async {
@@ -51,20 +78,29 @@ class _LockSessionPageState extends State<LockSessionPage> {
       );
       setState(() {     
         AppsList = appsList.where((i) => i.name != "Block Apps").toList();
+       
         // (appsList.removeWhere((i) => {i.name == ""}));
       });
     } on PlatformException {
       print("Failed to get installed apps.");
     }
   }
+  String _fmtDate(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  String _fmtTime(TimeOfDay t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
 
   Future<void> BlockApps() async {
     try {
-      await getApps();
-
+      //ssssss await getApps();
+    } catch (e) {}
+    
       sessionName = sessionNameController.text;
       sessionHour = int.parse(sessionHoursController.text);
       sessionMinute = int.parse(sessionMinutesController.text);
+
      
 
       addSchedule(
@@ -72,8 +108,12 @@ class _LockSessionPageState extends State<LockSessionPage> {
         AppsListSelected.toList(),
         sessionMinute,
         sessionHour,
-      );
-    } catch (e) {}
+    );
+    setState(() {
+      sessionNameController.clear();
+    });
+
+    // AppsListSelected = {}; 
   }
 
   Future<void> addSchedule(
@@ -85,16 +125,13 @@ class _LockSessionPageState extends State<LockSessionPage> {
     await BlockService.blocker2.addSchedule(
       BlockSchedule(
         enabled: true,
-        weekdays: [],
-        id: "strict",
-        name: name,
-        scheduleDate: DateTime.now(),
-        appIdentifiers: Apps.toList(),
-        startTime: TimeOfDay.now(),
-        endTime: TimeOfDay(
-          hour: TimeOfDay.now().hour + hourDuration,
-          minute: TimeOfDay.now().minute + minDuration,
-        ),
+        weekdays: isOneTime ? [] : (weekdays.toList()..sort()),
+        id: "session",
+        name: name.trim(),
+        scheduleDate: DateTime.now(), //isOneTime ? scheduleDate : null,
+        appIdentifiers: ["com.facebook.lite"],
+        startTime: start,
+        endTime: end,
       ),
     );
     sessionHoursController.clear();
@@ -198,7 +235,6 @@ class _LockSessionPageState extends State<LockSessionPage> {
                     ),
                   ),
                 ),
-
               ],
             );
           },
@@ -290,12 +326,12 @@ class _LockSessionPageState extends State<LockSessionPage> {
                           ),
                         ],
                       ),
-                      AutoInputBox(
-                        textStyle: TextStyle(
+                      TextField(
+                        style: TextStyle(
                           color: const Color.fromARGB(255, 255, 255, 255),
                           fontSize: 18,
                         ),
-                        inputDecoration: InputDecoration(
+                        decoration: InputDecoration(
                           hintText: "Name this session",
                           hintStyle: TextStyle(color: color.colorText2),
                           fillColor: color.btnColor,
@@ -304,9 +340,8 @@ class _LockSessionPageState extends State<LockSessionPage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        textEditingController: sessionNameController,
-                        suggestions: [""],
-                        toDisplayString: (item) => item,
+                        controller: sessionNameController,
+                        
                       ),
                     ],
                   ),
@@ -314,11 +349,112 @@ class _LockSessionPageState extends State<LockSessionPage> {
 
                 //end of the session name inputbox
 
-                //start of the session duration inputbox
-                
+                Container(
+                  margin: EdgeInsets.only(left: 15),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        style: TextStyle(fontSize: 16, color: color.btnColor),
+                        "One-time Schedule",
+                      ),
+                      Checkbox(
+                        activeColor: const Color.fromARGB(255, 196, 9, 156),
+                        value: isOneTime,
+                        onChanged: (value) {
+                          setState(() {
+                            isOneTime = !isOneTime;
+                            if (isOneTime) {
+                              weekdays = {};
+                            }
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Gap(5),
+                !isOneTime
+                    ? Text(
+                        style: TextStyle(color: color.btnColor, fontSize: 16),
+                        "Schedule Days",
+                      )
+                    : Text(
+                        style: TextStyle(color: color.btnColor, fontSize: 16),
+                        "Start Date",
+                      ),
+                !isOneTime
+                    ? Container(
+                        margin: EdgeInsets.all(10),
+                        child: Wrap(
+                          spacing: 4,
+                          children: List.generate(7, (i) {
+                            final day = i + 1;
+                            return FilterChip(
+                              elevation: 10,
+                              side: BorderSide(
+                                width: 0,
+                                color: Colors.transparent,
+                              ),
+                              checkmarkColor: color.colorText,
+                              
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadiusGeometry.circular(25),
+                              ),
+                              selectedColor: color.btnColor,
+                              backgroundColor: const Color.fromARGB(
+                                255,
+                                232,
+                                217,
+                                237,
+                              ),
+                              labelStyle: weekdays.contains(day)
+                                  ? TextStyle(color: color.colorText)
+                                  : TextStyle(
+                                      color: const Color.fromARGB(
+                                        255,
+                                        118,
+                                        59,
+                                        139,
+                                      ),
+                                    ),
+                              label: Text(days[i]),
+                              selected: weekdays.contains(day),
+                              onSelected: (v) => setState(
+                                () => v
+                                    ? weekdays.add(day)
+                                    : weekdays.remove(day),
+                              ),
+                            );
+                          }),
+                        ),
+                      )
+                    : Container(
+                        child: OutlinedButton(
+                          onPressed: _pickDate,
+                          child: Text('Date: ${_fmtDate(scheduleDate)}'),
+                        ),
+                      ),
 
-                //end of the session duration inputbox
 
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => _pickTime(true),
+                        child: Text('Start: ${_fmtTime(start)}'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => _pickTime(false),
+                        child: Text('End: ${_fmtTime(end)}'),
+                      ),
+                    ),
+                  ],
+                ),
+                Text("weekdays ${weekdays.toString()}"),
                 //start of the Apps to block section
                 Flex(
                   direction: Axis.horizontal,
@@ -439,7 +575,8 @@ class _LockSessionPageState extends State<LockSessionPage> {
                           backgroundColor: color.btnColor,
                         ),
                       
-                        onPressed: () {
+                        onPressed: () async {
+                          BlockApps();
                           if (AppsListSelected.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -466,21 +603,21 @@ class _LockSessionPageState extends State<LockSessionPage> {
                             );
                             return;
                           }
+
+
+                         
                         },
                         child: Text(
                           "Add Session",
                           style: TextStyle(color: color.colorText),
                         ),
                       );
+
+                      Text(sessionName);
                     }
                   ),
                 ),
-                GestureDetector(
-                  onTap: () async {
-                   
-                  },
-                  child: Container(child: (Text("Stopp apps"))),
-                ),
+                
 
               ],
             ),
