@@ -44,7 +44,7 @@ class LockSessionCard extends StatefulWidget {
 
 class _StrictModeCardState extends State<LockSessionCard> {
   late Stream<int> _timerStream;
-  TimeOfDay _endTime = const TimeOfDay(hour: 2, minute: 0);
+  final TimeOfDay _endTime = const TimeOfDay(hour: 2, minute: 0);
   List<AppInfo> _allapps = [];
   List<String> appsName = [];
   // ── timer helpers ──────────────────────────────────────────────────────────

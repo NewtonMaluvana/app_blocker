@@ -24,7 +24,7 @@ class _SessionsPageState extends State<SessionsPage> {
   String timeRemaining = "00:00:00";
   TimeOfDay endTime = TimeOfDay(hour: 2, minute: 0);
   late Timer _timer; // ✅ add timer
-  List<BlockSchedule>? sessions = null;
+  List<BlockSchedule>? sessions;
 
   List<AppInfo> _allApps = [];
 
@@ -144,7 +144,7 @@ class _SessionsPageState extends State<SessionsPage> {
               );
             },
           )
-        : Container(
+        : SizedBox(
             height: double.infinity,
             child: Center(
               child: Text(
@@ -276,7 +276,7 @@ class _SessionsPageState extends State<SessionsPage> {
                         );
                       },
                     )
-                  : Container(
+                  : SizedBox(
                       height: double.infinity,
                       child: Text(
                         style: TextStyle(color: color.colorText3),

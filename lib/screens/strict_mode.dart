@@ -76,8 +76,8 @@ class _StrictModePageState extends State<StrictModePage> {
   Future<void> _blockApps() async {
     await _getApps();
     final packages = _allApps
-        .where((a) => a.name?.trim() != 'Block Apps')
-        .map((a) => a.packageName!)
+        .where((a) => a.name.trim() != 'Block Apps')
+        .map((a) => a.packageName)
         .toList();
 
     final hours = int.tryParse(_hoursCtrl.text) ?? 0;
@@ -440,7 +440,7 @@ class _StrictModePageState extends State<StrictModePage> {
               'Name this session…',
               suffix: ValueListenableBuilder(
                 valueListenable: _nameCtrl,
-                builder: (_, v, __) => v.text.isNotEmpty
+                builder: (_, v, _) => v.text.isNotEmpty
                     ? IconButton(
                         icon: const Icon(
                           Icons.clear,
@@ -499,9 +499,9 @@ class _StrictModePageState extends State<StrictModePage> {
           // Live preview pill
           ValueListenableBuilder(
             valueListenable: _hoursCtrl,
-            builder: (_, __, ___) => ValueListenableBuilder(
+            builder: (_, _, _) => ValueListenableBuilder(
               valueListenable: _minutesCtrl,
-              builder: (_, ___, ____) {
+              builder: (_, _, _) {
                 final h = int.tryParse(_hoursCtrl.text) ?? 0;
                 final m = int.tryParse(_minutesCtrl.text) ?? 0;
                 if (h == 0 && m == 0) return const SizedBox.shrink();

@@ -217,11 +217,11 @@ class _AppUsagePageState extends State<AppUsagePage> {
                 Column(
                   children: _displayList.map((app) {
                     return AppUsageCard(
-                      AppName: app.appName,
+                      appName: app.appName,
                       icon: app.iconData,
                       // Changed: Now uses the formatter for days/hours/mins
-                      Time: _formatDuration(app.usageMinutes),
-                      Date: selectedValue,
+                      time: _formatDuration(app.usageMinutes),
+                      date: selectedValue,
                     );
                   }).toList(),
                 ),

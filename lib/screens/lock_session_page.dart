@@ -83,8 +83,9 @@ class _LockSessionPageState extends State<LockSessionPage> {
       initialTime: isStart ? _start : _end,
       builder: (ctx, child) => _darkTimePicker(ctx, child),
     );
-    if (picked != null)
+    if (picked != null) {
       setState(() => isStart ? _start = picked : _end = picked);
+    }
   }
 
   Future<void> _pickDate() async {
@@ -145,7 +146,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
           ? List.from(_allApps)
           : _allApps
                 .where(
-                  (a) => a.name!.toLowerCase().contains(query.toLowerCase()),
+                  (a) => a.name.toLowerCase().contains(query.toLowerCase()),
                 )
                 .toList();
     });
@@ -285,7 +286,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
                               ? List.from(_allApps)
                               : _allApps
                                     .where(
-                                      (a) => a.name!.toLowerCase().contains(
+                                      (a) => a.name.toLowerCase().contains(
                                         q.toLowerCase(),
                                       ),
                                     )
@@ -373,7 +374,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
                                             app.packageName,
                                           )
                                         : _selectedPackages.add(
-                                            app.packageName!,
+                                            app.packageName,
                                           );
                                   });
                                   setState(() {});
@@ -657,14 +658,15 @@ class _LockSessionPageState extends State<LockSessionPage> {
               ),
               Switch(
                 value: _isOneTime,
-                activeColor: _C.accent,
+                activeThumbColor: _C.accent,
                 inactiveTrackColor: _C.surface2,
                 onChanged: (v) => setState(() {
                   _isOneTime = v;
-                  if (v)
+                  if (v) {
                     _weekdays = {};
-                  else
+                  } else {
                     _weekdays = {1, 2, 3, 4, 5, 6, 7};
+                  }
                 }),
               ),
             ],
