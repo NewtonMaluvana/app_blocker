@@ -206,20 +206,12 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               SessionCard(
-                date: "Start 2024-10-10",
-                Time: "9:00 PM",
-                incons: Icons.shopping_bag,
+                date: " ",
+                time: "9:00 PM",
+                icon: Icons.shopping_bag,
+                onEdit: () {},
               ),
-              SessionCard(
-                date: "2023-10-10",
-                Time: "10:00 AM",
-                incons: Icons.facebook,
-              ),
-              SessionCard(
-                date: "2023-10-10",
-                Time: "10:00 AM",
-                incons: Icons.facebook,
-              ),
+             
             ],
           ),
         ),

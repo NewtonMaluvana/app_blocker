@@ -90,7 +90,7 @@ class _SessionsPageState extends State<SessionsPage> {
 
   List<Widget> get apps => [
     StrictModeCard(
-      Apps: [
+      apps: [
         "Facebook",
         "WhatsApp",
         "Twitter",
@@ -102,7 +102,7 @@ class _SessionsPageState extends State<SessionsPage> {
         "Snapchat",
       ],
       date: "Start 2024-10-10",
-      Time: "",
+      time: "",
     ),
    
     LockSessionCard(
@@ -223,7 +223,7 @@ class _SessionsPageState extends State<SessionsPage> {
               //end of the navbar row
               
               StrictModeCard(
-                Apps: [
+                apps: [
                   "Facebook",
                   "WhatsApp",
                   "Twitter",
@@ -235,7 +235,7 @@ class _SessionsPageState extends State<SessionsPage> {
                   "Snapchat",
                 ],
                 date: "Start 2024-10-10",
-                Time: timeRemaining,
+                time: timeRemaining,
               ),
               LockSessionCard(
                 Apps: [

@@ -4,7 +4,6 @@ import 'package:gap/gap.dart';
 import 'package:app_usage/app_usage.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:installed_apps/app_info.dart';
-import 'package:list_item_selector/list_item_selector.dart';
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:styled_drop_down/styled_drop_down.dart';
 // Your local imports
