@@ -1,11 +1,14 @@
 import 'dart:async';
 
-import 'package:app_blocker/app_blocker.dart';
+
 import 'package:block_apps/components/lock_session_card.dart';
+import 'package:app_blocker/app_blocker.dart' hide AppInfo;
 import 'package:block_apps/components/strict_mode_card.dart';
 import 'package:block_apps/constants/colors.dart';
 import 'package:block_apps/utils/blocker_service.dart';
 import 'package:flutter/material.dart';
+import 'package:installed_apps/app_info.dart';
+import 'package:installed_apps/installed_apps.dart';
 
 class SessionsPage extends StatefulWidget {
   const SessionsPage({super.key});
@@ -21,14 +24,15 @@ class _SessionsPageState extends State<SessionsPage> {
   String timeRemaining = "00:00:00";
   TimeOfDay endTime = TimeOfDay(hour: 2, minute: 0);
   late Timer _timer; // ✅ add timer
+  List<BlockSchedule>? sessions = null;
 
-
-
+  List<AppInfo> _allApps = [];
 
   @override
   void initState() {
     super.initState();
     _loadSchedule();
+    getSessionShedule();
     // ✅ Call a void wrapper
   }
 
@@ -36,7 +40,7 @@ class _SessionsPageState extends State<SessionsPage> {
   Future<void> _loadSchedule() async {
     await getShedule();
   }
-
+ 
   String getTimeRemaining(TimeOfDay end) {
     final now = DateTime.now();
 
@@ -53,6 +57,9 @@ class _SessionsPageState extends State<SessionsPage> {
       return "00:00:00";
     }
 
+  
+
+ 
     final difference = targetDateTime.difference(now);
 
     String hours = difference.inHours.toString().padLeft(2, '0');
@@ -70,11 +77,12 @@ class _SessionsPageState extends State<SessionsPage> {
 
   Future<void> getShedule() async {
     List<BlockSchedule> schedules = await BlockService.blocker2.getSchedules();
-
+    await _getApps();
     final strict = schedules.firstWhere(
-      (i) => i.id == "strict",
+      (i) => i.id == "strictmode",
       // handle if not found
     );
+  
 
     setState(() {
       endTime = strict.endTime; // ✅ actually assign endTime
@@ -85,42 +93,70 @@ class _SessionsPageState extends State<SessionsPage> {
         });
       });
     });
-  
   }
 
-  List<Widget> get apps => [
-    StrictModeCard(
-      apps: [
-        "Facebook",
-        "WhatsApp",
-        "Twitter",
-        "Instagram",
-        "Snapchat",
-        "WhatsApp",
-        "Twitter",
-        "Instagram",
-        "Snapchat",
-      ],
-      date: "Start 2024-10-10",
-      time: "",
-    ),
+  Future<void> _getApps() async {
+    try {
+      final list = await InstalledApps.getInstalledApps(
+        excludeSystemApps: false,
+        withIcon: true,
+      );
+      setState(() {
+        _allApps = list;
+      });
+    } catch (e) {}
+  }
+
+  Future<void> getSessionShedule() async {
+    List<BlockSchedule> schedules = await BlockService.blocker2.getSchedules();
+
+    final strict = schedules
+        .where(
+          (i) => i.id == "sessionmode",
+          // handle if not found
+        )
+        .toList();
+    setState(() {
+      sessions = strict;
+    });
+
+    // setState(() {
+    //   endTime = strict.endTime; // ✅ actually assign endTime
+    //   timeRemaining = getTimeRemaining(strict.endTime);
+    //   _timer = Timer.periodic(Duration(seconds: 1), (_) {
+    //     setState(() {
+    //       timeRemaining = getTimeRemaining(endTime);
+    //     });
+    //   });
+    // });
+  }
+
+  Widget getSessions() {
+    return sessions != null
+        ? ListView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            itemCount: sessions!.length,
+            itemBuilder: (context, index) {
+              return LockSessionCard(
+                time: getTimeRemaining(sessions![index].endTime),
+                apps: [""],
+              );
+            },
+          )
+        : Container(
+            height: double.infinity,
+            child: Center(
+              child: Text(
+                style: TextStyle(color: color.colorText3),
+                "No session added",
+              ),
+            ),
+          );
+  }
+
+
    
-    LockSessionCard(
-      Apps: [
-        "Facebook",
-        "WhatsApp",
-        "Twitter",
-        "Instagram",
-        "Snapchat",
-        "WhatsApp",
-        "Twitter",
-        "Instagram",
-        "Snapchat",
-      ],
-      date: "Start 2024-10-10",
-      Time: "1 Day:2h:45 min",
-    ),
-  ];
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -223,36 +259,31 @@ class _SessionsPageState extends State<SessionsPage> {
               //end of the navbar row
               
               StrictModeCard(
-                apps: [
-                  "Facebook",
-                  "WhatsApp",
-                  "Twitter",
-                  "Instagram",
-                  "Snapchat",
-                  "WhatsApp",
-                  "Twitter",
-                  "Instagram",
-                  "Snapchat",
-                ],
+               
                 date: "Start 2024-10-10",
                 time: timeRemaining,
               ),
-              LockSessionCard(
-                Apps: [
-                  "Facebook",
-                  "WhatsApp",
-                  "Twitter",
-                  "Instagram",
-                  "Snapchat",
-                  "WhatsApp",
-                  "Twitter",
-                  "Instagram",
-                  "Snapchat",
-                ],
-                date: "Start 2024-10-10",
-                Time: "1 Day:2h:45 min",
-              ),
-            ],
+              sessions != null
+                  ? ListView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: sessions!.length,
+                      itemBuilder: (context, index) {
+                        return LockSessionCard(
+                          time: getTimeRemaining(sessions![index].endTime),
+                          apps: sessions![index]
+                              .appIdentifiers, //sessions![index].appIdentif,
+                        );
+                      },
+                    )
+                  : Container(
+                      height: double.infinity,
+                      child: Text(
+                        style: TextStyle(color: color.colorText3),
+                        "No session added",
+                      ),
+                    ),
+            ]
           ),
         ),
       ),

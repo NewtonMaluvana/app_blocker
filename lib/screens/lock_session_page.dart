@@ -178,7 +178,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
       BlockSchedule(
         enabled: true,
         weekdays: _isOneTime ? [] : (_weekdays.toList()..sort()),
-        id: 'session_${DateTime.now().millisecondsSinceEpoch}',
+        id: 'sessionmode',
         name: name,
         scheduleDate: _isOneTime ? _scheduleDate : null,
         appIdentifiers: _selectedPackages.toList(),

@@ -26,13 +26,13 @@ class _C {
 class StrictModeCard extends StatefulWidget {
   final String date;
   final String time;
-  final List<String> apps;
+ 
 
   const StrictModeCard({
     super.key,
     required this.date,
     required this.time,
-    required this.apps,
+    
   });
 
   @override

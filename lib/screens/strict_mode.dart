@@ -83,12 +83,12 @@ class _StrictModePageState extends State<StrictModePage> {
     final hours = int.tryParse(_hoursCtrl.text) ?? 0;
     final minutes = int.tryParse(_minutesCtrl.text) ?? 0;
     final now = TimeOfDay.now();
-
+  
     await BlockService.blocker.addSchedule(
       BlockSchedule(
         enabled: true,
         weekdays: [],
-        id: 'strict_${DateTime.now().millisecondsSinceEpoch}',
+        id: 'strictmode',
         name: _nameCtrl.text.trim(),
         scheduleDate: DateTime.now(),
         appIdentifiers: packages,
