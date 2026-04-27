@@ -1,5 +1,6 @@
+import 'dart:io';
+
 import 'package:app_blocker/app_blocker.dart' hide AppInfo;
-import 'package:block_apps/constants/colors.dart';
 import 'package:block_apps/utils/blocker_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,25 +9,30 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:installed_apps/installed_apps.dart';
 
-// ─── Design tokens (light purple theme) ──────────────────────────────────────
+// ─── Design tokens ────────────────────────────────────────────────────────────
 class _C {
-  static const bg = Color(0xFFF5F3FF); // soft lavender page bg
-  static const surface = Color(0xFFFFFFFF); // white cards
-  static const surface2 = Color(0xFFF0EDFF); // tinted input bg
-  static const border = Color(0xFFDDD6FE); // light purple border
-  static const accent = Color.fromARGB(255, 68, 27, 139); // purple — unchanged
-  static const accentSoft = Color(0xFFEDE9FE); // very light purple tint
-  static const accentMid = Color(0xFFDDD6FE); // chip selected bg
-  static const green = Color(0xFF059669); // emerald (visible on light)
-  static const greenSoft = Color(0xFFD1FAE5); // light green bg
-  static const text = Color(0xFF1E1B4B); // deep indigo text
-  static const muted = Color(0xFF8B85C1); // muted purple-gray
+  static const bg = Color(0xFFF5F3FF);
+  static const surface = Color(0xFFFFFFFF);
+  static const surface2 = Color(0xFFF0EDFF);
+  static const border = Color(0xFFDDD6FE);
+  static const accent = Color.fromARGB(255, 68, 27, 139);
+  static const accentSoft = Color(0xFFEDE9FE);
+  static const accentMid = Color(0xFFDDD6FE);
+  static const green = Color(0xFF059669);
+  static const greenSoft = Color(0xFFD1FAE5);
+  static const text = Color(0xFF1E1B4B);
+  static const muted = Color(0xFF8B85C1);
   static const danger = Color(0xFFDC2626);
   static const dangerSoft = Color(0xFFFEE2E2);
+  static const dangerBorder = Color(0xFFFCA5A5);
   static const chipOff = Color(0xFFF5F3FF);
   static const chipOn = Color(0xFFEDE9FE);
-  static const chipLavender = Color(0xFF6D28D9); // dark purple text on chip
+  static const chipLavender = Color(0xFF6D28D9);
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Entry point — gates the real page behind permission
+// ─────────────────────────────────────────────────────────────────────────────
 
 class LockSessionPage extends StatefulWidget {
   const LockSessionPage({super.key});
@@ -35,7 +41,379 @@ class LockSessionPage extends StatefulWidget {
   State<LockSessionPage> createState() => _LockSessionPageState();
 }
 
-class _LockSessionPageState extends State<LockSessionPage> {
+class _LockSessionPageState extends State<LockSessionPage>
+    with WidgetsBindingObserver {
+  final _blocker = AppBlocker.instance;
+  BlockerPermissionStatus? _permission;
+  bool _checkingPermission = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _checkPermission();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Auto re-check when user returns from Android Settings.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _checkPermission();
+  }
+
+  Future<void> _checkPermission() async {
+    setState(() => _checkingPermission = true);
+    try {
+      final status = await _blocker.checkPermission();
+      if (mounted) setState(() => _permission = status);
+    } catch (_) {}
+    if (mounted) setState(() => _checkingPermission = false);
+  }
+
+  Future<void> _requestPermission() async {
+    try {
+      final status = await _blocker.requestPermission();
+      if (mounted) setState(() => _permission = status);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  bool get _granted => _permission == BlockerPermissionStatus.granted;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_checkingPermission) {
+      return const Scaffold(
+        backgroundColor: _C.bg,
+        body: Center(child: CircularProgressIndicator(color: _C.accent)),
+      );
+    }
+
+    if (!_granted) {
+      return _PermissionGatePage(
+        permissionStatus: _permission,
+        onCheck: _checkPermission,
+        onRequest: _requestPermission,
+      );
+    }
+
+    return const _LockSessionContent();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Permission gate — styled to match the purple theme
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _PermissionGatePage extends StatelessWidget {
+  const _PermissionGatePage({
+    required this.permissionStatus,
+    required this.onCheck,
+    required this.onRequest,
+  });
+
+  final BlockerPermissionStatus? permissionStatus;
+  final VoidCallback onCheck;
+  final VoidCallback onRequest;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: _C.bg,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 40, 20, 40),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Icon
+              Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  color: _C.accentSoft,
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(color: _C.border, width: .8),
+                ),
+                child: const Icon(
+                  Icons.lock_clock_outlined,
+                  color: _C.accent,
+                  size: 48,
+                ),
+              ),
+              const Gap(24),
+
+              Text(
+                'Permission Required',
+                style: GoogleFonts.dmSans(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: _C.text,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const Gap(10),
+              Text(
+                'Lock Session needs special permissions to schedule app blocking on your device.',
+                style: GoogleFonts.dmSans(
+                  fontSize: 14,
+                  color: _C.muted,
+                  height: 1.6,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const Gap(28),
+
+              // Status badge
+              _StatusBadge(status: permissionStatus),
+              const Gap(20),
+
+              // Android hint
+              if (Platform.isAndroid)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: _C.accentSoft,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: _C.border, width: .8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.info_outline,
+                            color: _C.accent,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Two permissions needed on Android',
+                            style: GoogleFonts.dmSans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: _C.accent,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Gap(10),
+                      _PermStep(
+                        number: '1',
+                        label: 'Accessibility Service',
+                        desc:
+                            'Lets the app detect which app is in the foreground.',
+                      ),
+                      const Gap(8),
+                      _PermStep(
+                        number: '2',
+                        label: 'Alarms & Reminders',
+                        desc: 'Required for exact scheduled blocking.',
+                      ),
+                      const Gap(10),
+                      Text(
+                        'Tap "Grant next" repeatedly until both are enabled, '
+                        'then come back here.',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 12,
+                          color: _C.muted,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              const Gap(24),
+
+              // Grant button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: onRequest,
+                  icon: const Icon(
+                    Icons.settings_outlined,
+                    size: 18,
+                    color: Colors.white,
+                  ),
+                  label: Text(
+                    'Grant next permission',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _C.accent,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ),
+              const Gap(10),
+
+              // Check button
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: onCheck,
+                  icon: const Icon(Icons.refresh, size: 18, color: _C.accent),
+                  label: Text(
+                    'Check permission status',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: _C.accent,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: const BorderSide(color: _C.border),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({required this.status});
+  final BlockerPermissionStatus? status;
+
+  @override
+  Widget build(BuildContext context) {
+    final granted = status == BlockerPermissionStatus.granted;
+    final label = status == null ? 'Checking…' : status!.name;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: granted ? _C.greenSoft : _C.dangerSoft,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: granted ? _C.green : _C.dangerBorder,
+          width: .8,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            granted ? Icons.check_circle : Icons.cancel_outlined,
+            color: granted ? _C.green : _C.danger,
+            size: 16,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Status: $label',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: granted ? _C.green : _C.danger,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PermStep extends StatelessWidget {
+  const _PermStep({
+    required this.number,
+    required this.label,
+    required this.desc,
+  });
+  final String number;
+  final String label;
+  final String desc;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 20,
+          height: 20,
+          decoration: BoxDecoration(
+            color: _C.accent,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Center(
+            child: Text(
+              number,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.dmSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: _C.text,
+                ),
+              ),
+              Text(
+                desc,
+                style: GoogleFonts.dmSans(fontSize: 11, color: _C.muted),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// The actual Lock Session content (only shown after permission is granted)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _LockSessionContent extends StatefulWidget {
+  const _LockSessionContent();
+
+  @override
+  State<_LockSessionContent> createState() => _LockSessionContentState();
+}
+
+class _LockSessionContentState extends State<_LockSessionContent> {
   final TextEditingController _sessionNameController = TextEditingController();
   final TextEditingController _modalSearchController = TextEditingController();
 
@@ -58,7 +436,14 @@ class _LockSessionPageState extends State<LockSessionPage> {
   Set<String> _selectedPackages = {};
   bool _loadingApps = false;
 
-  // ── helpers ────────────────────────────────────────────────────────────────
+  @override
+  void dispose() {
+    _sessionNameController.dispose();
+    _modalSearchController.dispose();
+    super.dispose();
+  }
+
+  // ── helpers ─────────────────────────────────────────────────────────────────
   String _fmtDate(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
@@ -76,12 +461,21 @@ class _LockSessionPageState extends State<LockSessionPage> {
     fontWeight: fw,
   );
 
-  // ── pickers ────────────────────────────────────────────────────────────────
+  // ── pickers ──────────────────────────────────────────────────────────────────
   Future<void> _pickTime(bool isStart) async {
     final picked = await showTimePicker(
       context: context,
       initialTime: isStart ? _start : _end,
-      builder: (ctx, child) => _darkTimePicker(ctx, child),
+      builder: (ctx, child) => Theme(
+        data: ThemeData.light().copyWith(
+          colorScheme: const ColorScheme.light(
+            primary: _C.accent,
+            onPrimary: Colors.white,
+            surface: _C.surface,
+          ),
+        ),
+        child: child!,
+      ),
     );
     if (picked != null) {
       setState(() => isStart ? _start = picked : _end = picked);
@@ -94,36 +488,23 @@ class _LockSessionPageState extends State<LockSessionPage> {
       initialDate: _scheduleDate,
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-      builder: (ctx, child) => _darkDatePicker(ctx, child),
+      builder: (ctx, child) => Theme(
+        data: ThemeData.light().copyWith(
+          colorScheme: const ColorScheme.light(
+            primary: _C.accent,
+            onPrimary: Colors.white,
+            surface: _C.surface,
+          ),
+        ),
+        child: child!,
+      ),
     );
     if (picked != null) setState(() => _scheduleDate = picked);
   }
 
-  Widget _darkTimePicker(BuildContext ctx, Widget? child) => Theme(
-    data: ThemeData.light().copyWith(
-      colorScheme: const ColorScheme.light(
-        primary: _C.accent,
-        onPrimary: Colors.white,
-        surface: _C.surface,
-      ),
-    ),
-    child: child!,
-  );
-
-  Widget _darkDatePicker(BuildContext ctx, Widget? child) => Theme(
-    data: ThemeData.light().copyWith(
-      colorScheme: const ColorScheme.light(
-        primary: _C.accent,
-        onPrimary: Colors.white,
-        surface: _C.surface,
-      ),
-    ),
-    child: child!,
-  );
-
-  // ── apps ───────────────────────────────────────────────────────────────────
+  // ── apps ─────────────────────────────────────────────────────────────────────
   Future<void> _getApps() async {
-    if (_allApps.isNotEmpty) return; // already loaded
+    if (_allApps.isNotEmpty) return;
     setState(() => _loadingApps = true);
     try {
       final list = await InstalledApps.getInstalledApps(
@@ -140,19 +521,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
     }
   }
 
-  void _filterApps(String query) {
-    setState(() {
-      _filteredApps = query.isEmpty
-          ? List.from(_allApps)
-          : _allApps
-                .where(
-                  (a) => a.name.toLowerCase().contains(query.toLowerCase()),
-                )
-                .toList();
-    });
-  }
-
-  // ── submit ─────────────────────────────────────────────────────────────────
+  // ── submit ────────────────────────────────────────────────────────────────────
   Future<void> _submit() async {
     final name = _sessionNameController.text.trim();
     if (name.isEmpty) {
@@ -230,7 +599,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
     );
   }
 
-  // ── modal ──────────────────────────────────────────────────────────────────
+  // ── modal ─────────────────────────────────────────────────────────────────────
   Future<void> _showAppsModal() async {
     await _getApps();
     _modalSearchController.clear();
@@ -256,7 +625,6 @@ class _LockSessionPageState extends State<LockSessionPage> {
               ),
               child: Column(
                 children: [
-                  // handle
                   Center(
                     child: Container(
                       margin: const EdgeInsets.only(top: 12),
@@ -274,7 +642,6 @@ class _LockSessionPageState extends State<LockSessionPage> {
                     style: _mono(size: 11, color: _C.muted),
                   ),
                   const SizedBox(height: 12),
-                  // search
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: TextField(
@@ -335,7 +702,6 @@ class _LockSessionPageState extends State<LockSessionPage> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  // grid
                   Expanded(
                     child: _loadingApps
                         ? const Center(
@@ -464,7 +830,6 @@ class _LockSessionPageState extends State<LockSessionPage> {
                             },
                           ),
                   ),
-                  // footer
                   Container(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                     decoration: const BoxDecoration(
@@ -504,7 +869,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
     );
   }
 
-  // ── build ──────────────────────────────────────────────────────────────────
+  // ── build ─────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -533,7 +898,6 @@ class _LockSessionPageState extends State<LockSessionPage> {
     );
   }
 
-  // ── header ─────────────────────────────────────────────────────────────────
   Widget _buildHeader() {
     return _Card(
       child: Row(
@@ -589,10 +953,11 @@ class _LockSessionPageState extends State<LockSessionPage> {
                   ),
                   child: Text(
                     'Custom block list',
-                    style: _mono(
-                      size: 11,
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 11,
                       color: _C.green,
-                      fw: FontWeight.w700,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -604,13 +969,12 @@ class _LockSessionPageState extends State<LockSessionPage> {
     );
   }
 
-  // ── session name ───────────────────────────────────────────────────────────
   Widget _buildSessionNameCard() {
     return _Card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _Label('Session Name'),
+          const _Label('Session Name'),
           const SizedBox(height: 8),
           TextField(
             controller: _sessionNameController,
@@ -643,7 +1007,6 @@ class _LockSessionPageState extends State<LockSessionPage> {
     );
   }
 
-  // ── schedule card ──────────────────────────────────────────────────────────
   Widget _buildScheduleCard() {
     return _Card(
       child: Column(
@@ -662,11 +1025,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
                 inactiveTrackColor: _C.surface2,
                 onChanged: (v) => setState(() {
                   _isOneTime = v;
-                  if (v) {
-                    _weekdays = {};
-                  } else {
-                    _weekdays = {1, 2, 3, 4, 5, 6, 7};
-                  }
+                  _weekdays = v ? {} : {1, 2, 3, 4, 5, 6, 7};
                 }),
               ),
             ],
@@ -703,10 +1062,11 @@ class _LockSessionPageState extends State<LockSessionPage> {
             ),
             child: Text(
               _dayLabels[i],
-              style: _mono(
-                size: 12,
+              style: TextStyle(
+                fontFamily: 'monospace',
+                fontSize: 12,
                 color: on ? _C.chipLavender : _C.muted,
-                fw: on ? FontWeight.w700 : FontWeight.normal,
+                fontWeight: on ? FontWeight.w700 : FontWeight.normal,
               ),
             ),
           ),
@@ -736,7 +1096,11 @@ class _LockSessionPageState extends State<LockSessionPage> {
             const SizedBox(width: 10),
             Text(
               _fmtDate(_scheduleDate),
-              style: _mono(size: 14, color: _C.text),
+              style: TextStyle(
+                fontFamily: 'monospace',
+                fontSize: 14,
+                color: _C.text,
+              ),
             ),
           ],
         ),
@@ -744,18 +1108,17 @@ class _LockSessionPageState extends State<LockSessionPage> {
     );
   }
 
-  // ── time card ──────────────────────────────────────────────────────────────
   Widget _buildTimeCard() {
     return _Card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _Label('Block Window'),
+          const _Label('Block Window'),
           const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
-                child: _TimeTile(
+                child: _timeTile(
                   'Start',
                   _fmtTime(_start),
                   () => _pickTime(true),
@@ -763,7 +1126,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: _TimeTile('End', _fmtTime(_end), () => _pickTime(false)),
+                child: _timeTile('End', _fmtTime(_end), () => _pickTime(false)),
               ),
             ],
           ),
@@ -772,7 +1135,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
     );
   }
 
-  Widget _TimeTile(String label, String value, VoidCallback onTap) {
+  Widget _timeTile(String label, String value, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -785,11 +1148,23 @@ class _LockSessionPageState extends State<LockSessionPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label.toUpperCase(), style: _mono(size: 9, color: _C.muted)),
+            Text(
+              label.toUpperCase(),
+              style: const TextStyle(
+                fontFamily: 'monospace',
+                fontSize: 9,
+                color: _C.muted,
+              ),
+            ),
             const SizedBox(height: 4),
             Text(
               value,
-              style: _mono(size: 16, color: _C.accent, fw: FontWeight.w700),
+              style: const TextStyle(
+                fontFamily: 'monospace',
+                fontSize: 16,
+                color: _C.accent,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ],
         ),
@@ -797,7 +1172,6 @@ class _LockSessionPageState extends State<LockSessionPage> {
     );
   }
 
-  // ── apps card ──────────────────────────────────────────────────────────────
   Widget _buildAppsCard() {
     final selectedApps = _allApps
         .where((a) => _selectedPackages.contains(a.packageName))
@@ -809,7 +1183,7 @@ class _LockSessionPageState extends State<LockSessionPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _Label('Apps to Block'),
+              const _Label('Apps to Block'),
               GestureDetector(
                 onTap: _showAppsModal,
                 child: Container(
@@ -823,10 +1197,11 @@ class _LockSessionPageState extends State<LockSessionPage> {
                   ),
                   child: Text(
                     _selectedPackages.isNotEmpty ? 'EDIT' : 'ADD',
-                    style: _mono(
-                      size: 11,
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 11,
                       color: Colors.white,
-                      fw: FontWeight.w700,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -909,7 +1284,6 @@ class _LockSessionPageState extends State<LockSessionPage> {
     );
   }
 
-  // ── submit ─────────────────────────────────────────────────────────────────
   Widget _buildSubmitButton() {
     return SizedBox(
       width: double.infinity,
@@ -936,7 +1310,8 @@ class _LockSessionPageState extends State<LockSessionPage> {
   }
 }
 
-// ─── Reusable widgets ─────────────────────────────────────────────────────────
+// ─── Reusable widgets ──────────────────────────────────────────────────────────
+
 class _Card extends StatelessWidget {
   final Widget child;
   const _Card({required this.child});
@@ -947,10 +1322,10 @@ class _Card extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFFFF),
+        color: _C.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFDDD6FE), width: .8),
-        boxShadow: [
+        border: Border.all(color: _C.border, width: .8),
+        boxShadow: const [
           BoxShadow(
             color: Color(0x0A7C3AED),
             blurRadius: 8,
@@ -975,7 +1350,7 @@ class _Label extends StatelessWidget {
         fontFamily: 'monospace',
         fontSize: 10,
         letterSpacing: 1.2,
-        color: Color(0xFF8B85C1),
+        color: _C.muted,
       ),
     );
   }

@@ -7,8 +7,9 @@ import 'package:google_fonts/google_fonts.dart';
 class _C {
   static const surface = Color(0xFFFFFFFF);
   static const surface2 = Color(0xFFF0EDFF);
-  static const border = Color(0xFFDDD6FE);
+  static const border = Color(0xFFEDE9FE);
   static const accent = Color(0xFF7C3AED);
+  static const accentLight = Color(0xFFA78BFA);
   static const accentSoft = Color(0xFFEDE9FE);
   static const text = Color(0xFF1E1B4B);
   static const muted = Color(0xFF8B85C1);
@@ -20,12 +21,16 @@ class AppUsageCard extends StatefulWidget {
   final String time;
   final String date;
 
+  /// Optional: rank label e.g. "Most used today", "2nd most used"
+  final String? subtitle;
+
   const AppUsageCard({
     super.key,
     required this.appName,
     required this.icon,
     required this.time,
     required this.date,
+    this.subtitle,
   });
 
   @override
@@ -39,75 +44,122 @@ class _AppUsageCardState extends State<AppUsageCard> {
       margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 14),
       decoration: BoxDecoration(
         color: _C.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _C.border, width: .8),
-        boxShadow: const [
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _C.border, width: 1),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A7C3AED),
-            blurRadius: 8,
-            offset: Offset(0, 2),
+            color: _C.accent.withOpacity(0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Row(
-          children: [
-            // ── left purple accent bar ─────────────────────────────────────
-            Container(width: 4, height: 70, color: _C.accent),
+        borderRadius: BorderRadius.circular(20),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
 
-            // ── app icon ───────────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Container(
-                width: 44,
-                height: 44,
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: _C.accentSoft,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: _C.border, width: .8),
-                ),
-                child: Image.memory(widget.icon, fit: BoxFit.contain),
-              ),
-            ),
-
-            // ── app name ───────────────────────────────────────────────────
-            Expanded(
-              child: Text(
-                widget.appName,
-                style: GoogleFonts.dmSans(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: _C.text,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-
-            // ── time + date ────────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    widget.time,
-                    style: GoogleFonts.dmSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: _C.accent,
-                    ),
+              // ── left gradient accent bar ─────────────────────────────────
+              Container(
+                width: 4,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [_C.accent, _C.accentLight],
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    widget.date,
-                    style: GoogleFonts.dmSans(fontSize: 11, color: _C.muted),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
+
+              // ── content ───────────────────────────────────────────────────
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 14,
+                  ),
+                  child: Row(
+                    children: [
+                      // app icon
+                      Container(
+                        width: 46,
+                        height: 46,
+                        padding: const EdgeInsets.all(9),
+                        decoration: BoxDecoration(
+                          color: _C.accentSoft,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: _C.border, width: 1),
+                        ),
+                        child: Image.memory(widget.icon, fit: BoxFit.contain),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      // name + subtitle
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              widget.appName,
+                              style: GoogleFonts.dmSans(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: _C.text,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (widget.subtitle != null) ...[
+                              const SizedBox(height: 3),
+                              Text(
+                                widget.subtitle!,
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 11,
+                                  color: _C.muted,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      // time + date
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            widget.time,
+                            style: const TextStyle(
+                              fontFamily: 'monospace',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: _C.accent,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            widget.date,
+                            style: const TextStyle(
+                              fontFamily: 'monospace',
+                              fontSize: 10,
+                              color: _C.muted,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

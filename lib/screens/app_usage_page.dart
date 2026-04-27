@@ -18,8 +18,8 @@ class AppUsagePage extends StatefulWidget {
 }
 
 class _AppUsagePageState extends State<AppUsagePage> {
-  String selectedValue = "Today";
-  final List<String> items = ["Today", "This week", "This Month"];
+  String selectedValue = "Last 24 hours";
+  final List<String> items = ["Last 24 hours", "This week", "This Month"];
   
   List<AppUsageDetails> _displayList = [];
   bool _isLoading = false;
@@ -54,7 +54,7 @@ class _AppUsagePageState extends State<AppUsagePage> {
         return now.subtract(const Duration(days: 7));
       case "This Month":
         return now.subtract(const Duration(days: 30));
-      case "Today":
+      case "Last 24 hours":
       default:
         return DateTime(now.year, now.month, now.day);
     }

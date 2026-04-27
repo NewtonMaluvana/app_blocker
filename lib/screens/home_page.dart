@@ -29,7 +29,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               Container(
                 padding: EdgeInsets.all(10),
-                height: 200,
+                
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: color.btnColor,

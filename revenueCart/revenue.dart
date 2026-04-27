@@ -5,9 +5,9 @@ Future<void> initializeRevenueCat() async {
   // Platform-specific API keys
   String apiKey;
   if (Platform.isIOS) {
-    apiKey = 'test_htvSZUlujhhhDuoGKeWjVItnijr';
+    apiKey = 'test_SQhUPgssAFSvNLaJLGTqFPhsuGn';
   } else if (Platform.isAndroid) {
-    apiKey = 'test_htvSZUlujhhhDuoGKeWjVItnijr';
+    apiKey = 'test_SQhUPgssAFSvNLaJLGTqFPhsuGn';
   } else {
     throw UnsupportedError('Platform not supported');
   }

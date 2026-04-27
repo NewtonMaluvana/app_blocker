@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app_blocker/app_blocker.dart' hide AppInfo;
 import 'package:block_apps/utils/blocker_service.dart';
 import 'package:flutter/material.dart';
@@ -24,9 +26,11 @@ class _C {
   static const muted = Color(0xFF8B85C1);
   static const danger = Color(0xFFDC2626);
   static const dangerSoft = Color(0xFFFEE2E2);
-  static const chipOff = Color(0xFFF5F3FF);
-  static const chipOn = Color(0xFFEDE9FE);
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Entry point — gates the real page behind permission
+// ─────────────────────────────────────────────────────────────────────────────
 
 class StrictModePage extends StatefulWidget {
   const StrictModePage({super.key});
@@ -35,7 +39,374 @@ class StrictModePage extends StatefulWidget {
   State<StrictModePage> createState() => _StrictModePageState();
 }
 
-class _StrictModePageState extends State<StrictModePage> {
+class _StrictModePageState extends State<StrictModePage>
+    with WidgetsBindingObserver {
+  // ── permission state ────────────────────────────────────────────────────────
+  final _blocker = AppBlocker.instance;
+  BlockerPermissionStatus? _permission;
+  bool _checkingPermission = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _checkPermission();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Re-check when user comes back from the Settings screen.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _checkPermission();
+  }
+
+  Future<void> _checkPermission() async {
+    setState(() => _checkingPermission = true);
+    try {
+      final status = await _blocker.checkPermission();
+      if (mounted) setState(() => _permission = status);
+    } catch (_) {}
+    if (mounted) setState(() => _checkingPermission = false);
+  }
+
+  Future<void> _requestPermission() async {
+    try {
+      final status = await _blocker.requestPermission();
+      if (mounted) setState(() => _permission = status);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  bool get _granted => _permission == BlockerPermissionStatus.granted;
+
+  // ── build ───────────────────────────────────────────────────────────────────
+  @override
+  Widget build(BuildContext context) {
+    if (_checkingPermission) {
+      return const Scaffold(
+        backgroundColor: _C.bg,
+        body: Center(child: CircularProgressIndicator(color: _C.accent)),
+      );
+    }
+
+    // Show permission gate if not granted
+    if (!_granted) {
+      return _PermissionGatePage(
+        permissionStatus: _permission,
+        onCheck: _checkPermission,
+        onRequest: _requestPermission,
+      );
+    }
+
+    // Permission granted — show the real page
+    return const _StrictModeContent();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Permission gate page
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _PermissionGatePage extends StatelessWidget {
+  const _PermissionGatePage({
+    required this.permissionStatus,
+    required this.onCheck,
+    required this.onRequest,
+  });
+
+  final BlockerPermissionStatus? permissionStatus;
+  final VoidCallback onCheck;
+  final VoidCallback onRequest;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: _C.bg,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 40, 20, 40),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Lock illustration
+              Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  color: _C.redSoft,
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(color: _C.redBorder, width: .8),
+                ),
+                child: const Icon(Icons.lock_outline, color: _C.red, size: 48),
+              ),
+              const SizedBox(height: 24),
+
+              Text(
+                'Permission Required',
+                style: GoogleFonts.dmSans(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: _C.text,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Strict Mode needs special permissions to block apps on your device.',
+                style: GoogleFonts.dmSans(
+                  fontSize: 14,
+                  color: _C.muted,
+                  height: 1.6,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 28),
+
+              // Status badge
+              _StatusBadge(status: permissionStatus),
+              const SizedBox(height: 20),
+
+              // Android extra hint
+              if (Platform.isAndroid)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: _C.accentSoft,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: _C.border, width: .8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.info_outline,
+                            color: _C.accent,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Two permissions needed on Android',
+                            style: GoogleFonts.dmSans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: _C.accent,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      _PermStep(
+                        number: '1',
+                        label: 'Accessibility Service',
+                        desc:
+                            'Lets the app detect which app is in the foreground.',
+                      ),
+                      const SizedBox(height: 6),
+                      _PermStep(
+                        number: '2',
+                        label: 'Alarms & Reminders',
+                        desc: 'Required for exact time-based scheduling.',
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Tap "Grant next" repeatedly until both are enabled, '
+                        'then come back here.',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 12,
+                          color: _C.muted,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              const SizedBox(height: 24),
+
+              // Buttons
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: onRequest,
+                  icon: const Icon(
+                    Icons.settings_outlined,
+                    size: 18,
+                    color: Colors.white,
+                  ),
+                  label: Text(
+                    'Grant next permission',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _C.accent,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: onCheck,
+                  icon: const Icon(Icons.refresh, size: 18, color: _C.accent),
+                  label: Text(
+                    'Check permission status',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: _C.accent,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: const BorderSide(color: _C.border),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({required this.status});
+  final BlockerPermissionStatus? status;
+
+  @override
+  Widget build(BuildContext context) {
+    final granted = status == BlockerPermissionStatus.granted;
+    final label = status == null ? 'Checking…' : status!.name;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: granted ? _C.greenSoft : _C.redSoft,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: granted ? _C.green : _C.redBorder, width: .8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            granted ? Icons.check_circle : Icons.cancel_outlined,
+            color: granted ? _C.green : _C.red,
+            size: 16,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Status: $label',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: granted ? _C.green : _C.red,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PermStep extends StatelessWidget {
+  const _PermStep({
+    required this.number,
+    required this.label,
+    required this.desc,
+  });
+  final String number;
+  final String label;
+  final String desc;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 20,
+          height: 20,
+          decoration: BoxDecoration(
+            color: _C.accent,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Center(
+            child: Text(
+              number,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.dmSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: _C.text,
+                ),
+              ),
+              Text(
+                desc,
+                style: GoogleFonts.dmSans(fontSize: 11, color: _C.muted),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// The actual Strict Mode content (only shown after permission is granted)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _StrictModeContent extends StatefulWidget {
+  const _StrictModeContent();
+
+  @override
+  State<_StrictModeContent> createState() => _StrictModeContentState();
+}
+
+class _StrictModeContentState extends State<_StrictModeContent> {
   final TextEditingController _nameCtrl = TextEditingController();
   final TextEditingController _hoursCtrl = TextEditingController();
   final TextEditingController _minutesCtrl = TextEditingController();
@@ -43,7 +414,15 @@ class _StrictModePageState extends State<StrictModePage> {
   List<AppInfo> _allApps = [];
   bool _loading = false;
 
-  // ── helpers ────────────────────────────────────────────────────────────────
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _hoursCtrl.dispose();
+    _minutesCtrl.dispose();
+    super.dispose();
+  }
+
+  // ── helpers ─────────────────────────────────────────────────────────────────
   TextStyle _mono({
     double size = 13,
     Color? color,
@@ -55,7 +434,7 @@ class _StrictModePageState extends State<StrictModePage> {
     fontWeight: fw,
   );
 
-  // ── apps ───────────────────────────────────────────────────────────────────
+  // ── apps ─────────────────────────────────────────────────────────────────────
   Future<void> _getApps() async {
     setState(() => _loading = true);
     try {
@@ -72,7 +451,7 @@ class _StrictModePageState extends State<StrictModePage> {
     }
   }
 
-  // ── block ──────────────────────────────────────────────────────────────────
+  // ── block ────────────────────────────────────────────────────────────────────
   Future<void> _blockApps() async {
     await _getApps();
     final packages = _allApps
@@ -83,7 +462,7 @@ class _StrictModePageState extends State<StrictModePage> {
     final hours = int.tryParse(_hoursCtrl.text) ?? 0;
     final minutes = int.tryParse(_minutesCtrl.text) ?? 0;
     final now = TimeOfDay.now();
-  
+
     await BlockService.blocker.addSchedule(
       BlockSchedule(
         enabled: true,
@@ -115,7 +494,7 @@ class _StrictModePageState extends State<StrictModePage> {
     } catch (_) {}
   }
 
-  // ── validation + confirm dialog ────────────────────────────────────────────
+  // ── validation + confirm dialog ──────────────────────────────────────────────
   void _onStartPressed() {
     final hours = int.tryParse(_hoursCtrl.text) ?? 0;
     final minutes = int.tryParse(_minutesCtrl.text) ?? 0;
@@ -180,7 +559,8 @@ class _StrictModePageState extends State<StrictModePage> {
             children: [
               const SizedBox(height: 4),
               Text(
-                'Once started, all apps will be blocked for $durText. You won\'t be able to undo this during the session.',
+                'Once started, all apps will be blocked for $durText. '
+                "You won't be able to undo this during the session.",
                 style: GoogleFonts.dmSans(
                   fontSize: 14,
                   color: _C.muted,
@@ -277,7 +657,7 @@ class _StrictModePageState extends State<StrictModePage> {
     );
   }
 
-  // ── snackbar ───────────────────────────────────────────────────────────────
+  // ── snackbar ─────────────────────────────────────────────────────────────────
   void _snack(String msg, {bool success = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -313,7 +693,7 @@ class _StrictModePageState extends State<StrictModePage> {
     );
   }
 
-  // ── input decoration ───────────────────────────────────────────────────────
+  // ── input decoration ─────────────────────────────────────────────────────────
   InputDecoration _inputDeco(String hint, {Widget? suffix}) => InputDecoration(
     hintText: hint,
     hintStyle: const TextStyle(color: _C.muted, fontSize: 14),
@@ -335,7 +715,7 @@ class _StrictModePageState extends State<StrictModePage> {
     ),
   );
 
-  // ── build ──────────────────────────────────────────────────────────────────
+  // ── build ─────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -364,7 +744,6 @@ class _StrictModePageState extends State<StrictModePage> {
     );
   }
 
-  // ── header ─────────────────────────────────────────────────────────────────
   Widget _buildHeader() {
     return _Card(
       child: Row(
@@ -414,7 +793,12 @@ class _StrictModePageState extends State<StrictModePage> {
                   ),
                   child: Text(
                     'All apps blocked',
-                    style: _mono(size: 11, color: _C.red, fw: FontWeight.w700),
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 11,
+                      color: _C.red,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
@@ -425,13 +809,12 @@ class _StrictModePageState extends State<StrictModePage> {
     );
   }
 
-  // ── session name ───────────────────────────────────────────────────────────
   Widget _buildNameCard() {
     return _Card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _Label('Session Name'),
+          const _Label('Session Name'),
           const SizedBox(height: 8),
           TextField(
             controller: _nameCtrl,
@@ -458,13 +841,12 @@ class _StrictModePageState extends State<StrictModePage> {
     );
   }
 
-  // ── duration ───────────────────────────────────────────────────────────────
   Widget _buildDurationCard() {
     return _Card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _Label('Session Duration'),
+          const _Label('Session Duration'),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -496,7 +878,6 @@ class _StrictModePageState extends State<StrictModePage> {
             ],
           ),
           const SizedBox(height: 10),
-          // Live preview pill
           ValueListenableBuilder(
             valueListenable: _hoursCtrl,
             builder: (_, _, _) => ValueListenableBuilder(
@@ -528,10 +909,11 @@ class _StrictModePageState extends State<StrictModePage> {
                       const SizedBox(width: 6),
                       Text(
                         'Block for $label',
-                        style: _mono(
-                          size: 12,
+                        style: TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 12,
                           color: _C.accent,
-                          fw: FontWeight.w700,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
@@ -545,7 +927,6 @@ class _StrictModePageState extends State<StrictModePage> {
     );
   }
 
-  // ── info card ──────────────────────────────────────────────────────────────
   Widget _buildInfoCard() {
     return Container(
       width: double.infinity,
@@ -564,7 +945,12 @@ class _StrictModePageState extends State<StrictModePage> {
               const SizedBox(width: 8),
               Text(
                 'What gets blocked',
-                style: _mono(size: 11, color: _C.red, fw: FontWeight.w700),
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 11,
+                  color: _C.red,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),
@@ -578,7 +964,6 @@ class _StrictModePageState extends State<StrictModePage> {
     );
   }
 
-  // ── stop card ──────────────────────────────────────────────────────────────
   Widget _buildStopCard() {
     return _Card(
       child: Row(
@@ -627,7 +1012,6 @@ class _StrictModePageState extends State<StrictModePage> {
     );
   }
 
-  // ── start button ───────────────────────────────────────────────────────────
   Widget _buildStartButton() {
     return SizedBox(
       width: double.infinity,
@@ -671,7 +1055,8 @@ class _StrictModePageState extends State<StrictModePage> {
   }
 }
 
-// ─── Reusable widgets ─────────────────────────────────────────────────────────
+// ─── Reusable widgets ──────────────────────────────────────────────────────────
+
 class _Card extends StatelessWidget {
   final Widget child;
   const _Card({required this.child});
@@ -682,9 +1067,9 @@ class _Card extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFFFF),
+        color: _C.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFDDD6FE), width: .8),
+        border: Border.all(color: _C.border, width: .8),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A7C3AED),
@@ -710,7 +1095,7 @@ class _Label extends StatelessWidget {
         fontFamily: 'monospace',
         fontSize: 10,
         letterSpacing: 1.2,
-        color: Color(0xFF8B85C1),
+        color: _C.muted,
       ),
     );
   }
