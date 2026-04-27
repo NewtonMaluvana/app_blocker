@@ -48,6 +48,7 @@ dependencies:
   google_fonts: ^6.3.3
   flutter_inputbox: ^0.0.1
   auto_input_box: ^0.0.2
+ 
   
   flutter_time_duration_picker: ^1.0.0
   duration_picker_dialog_box: ^1.0.2
@@ -64,6 +65,7 @@ dependencies:
   purchases_ui_flutter: ^10.0.1
   styled_drop_down: ^1.0.3
   items_selector: ^2.3.1
+  device_policy_manager: ^1.0.0
 
 
 dev_dependencies:

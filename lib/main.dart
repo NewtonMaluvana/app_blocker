@@ -1,5 +1,6 @@
 import 'package:block_apps/screens/app_usage_page.dart';
 import 'package:block_apps/screens/home_page.dart';
+import 'package:block_apps/screens/permit.dart';
 import 'package:block_apps/screens/profile_page.dart';
 import 'package:block_apps/screens/sessions_page.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +33,7 @@ class _ExampleState extends State<Example> {
     HomePage(),
     SessionsPage(),
     AppUsagePage(),
-    ProfilePage(),
+    MyApp(),
   ];
   
 
