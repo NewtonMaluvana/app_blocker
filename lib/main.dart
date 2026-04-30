@@ -1,17 +1,40 @@
+import 'dart:io';
 import 'package:block_apps/screens/app_usage_page.dart';
 import 'package:block_apps/screens/home_page.dart';
 import 'package:block_apps/screens/permit.dart';
-import 'package:block_apps/screens/profile_page.dart';
 import 'package:block_apps/screens/sessions_page.dart';
+import 'package:block_apps/services/premium_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:line_icons/line_icons.dart';
-// void main() {
-//   runApp(WelcomePage());
-// }
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:block_apps/utils/foreground_service.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 
-void main() {
-  runApp(MaterialApp(home: Example()));
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  FlutterForegroundTask.initCommunicationPort();
+  ForegroundService.init();
+  await ForegroundService.startPermanent();
+  await _configurePurchases();
+  await PremiumService.instance.init(); // ← add this
+  runApp(const MaterialApp(home: Example()));
+}
+
+Future<void> _configurePurchases() async {
+  await Purchases.setLogLevel(LogLevel.debug);
+
+  PurchasesConfiguration configuration;
+
+  if (Platform.isIOS || Platform.isMacOS) {
+    configuration = PurchasesConfiguration("test_SQhUPgssAFSvNLaJLGTqFPhsuGn");
+  } else {
+    configuration = PurchasesConfiguration("test_SQhUPgssAFSvNLaJLGTqFPhsuGn");
+  }
+
+  configuration.store = Store.testStore; // ← test mode, no real charges
+
+  await Purchases.configure(configuration);
 }
 
 class Example extends StatefulWidget {
@@ -21,29 +44,21 @@ class Example extends StatefulWidget {
   _ExampleState createState() => _ExampleState();
 }
 
-
-
 class _ExampleState extends State<Example> {
   int _selectedIndex = 0;
-  static const TextStyle optionStyle = TextStyle(
-    fontSize: 30,
-    fontWeight: FontWeight.w600,
-  );
+
   static final List<Widget> _widgetOptions = <Widget>[
     HomePage(),
     SessionsPage(),
     AppUsagePage(),
-    MyApp(),
+    MyApp(), // Profile/upgrade tab
   ];
-  
-
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(elevation: 20, title: const Text('GoogleNavBar')),
+      appBar: AppBar(elevation: 20, title: const Text('Block Apps')),
       body: _widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -61,14 +76,12 @@ class _ExampleState extends State<Example> {
               gap: 8,
               activeColor: Colors.black,
               iconSize: 24,
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              duration: Duration(milliseconds: 400),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              duration: const Duration(milliseconds: 400),
               tabBackgroundColor: Colors.grey[100]!,
               color: Colors.black,
-              tabs: [
+              tabs: const [
                 GButton(icon: LineIcons.home, text: 'Home'),
-                // GButton(icon: LineIcons.heart, text: 'Likes'),
-                // GButton(icon: LineIcons.search, text: 'Search'),
                 GButton(icon: LineIcons.stopwatch, text: 'Sessions'),
                 GButton(icon: LineIcons.info, text: 'App Usage'),
                 GButton(icon: LineIcons.userCircle, text: 'Profile'),
@@ -77,7 +90,6 @@ class _ExampleState extends State<Example> {
               onTabChange: (index) {
                 setState(() {
                   _selectedIndex = index;
-                  // ← call it here so dialog shows on launch
                 });
               },
             ),

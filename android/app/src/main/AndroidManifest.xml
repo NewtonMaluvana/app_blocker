@@ -3,13 +3,18 @@
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions"/>
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
 
     <application
         android:label="Block Apps"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:persistent="true">
 
         <activity
             android:name=".MainActivity"
@@ -29,20 +34,23 @@
             </intent-filter>
         </activity>
 
-        <!-- Device Admin Receiver -->
+        <!-- flutter_foreground_task -->
+        <service
+            android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
+            android:foregroundServiceType="dataSync"
+            android:stopWithTask="false"/>
+
         <receiver
-            android:name="device.policy.manager.DeviceAdmin"
-            android:permission="android.permission.BIND_DEVICE_ADMIN"
+            android:name="com.pravera.flutter_foreground_task.receiver.BootReceiver"
             android:exported="true">
-            <meta-data
-                android:name="android.app.device_admin"
-                android:resource="@xml/policies"/>
             <intent-filter>
-                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED"/>
-                <action android:name="android.app.action.ACTION_DEVICE_ADMIN_DISABLE_REQUESTED"/>
-                <action android:name="android.app.action.ACTION_DEVICE_ADMIN_DISABLED"/>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
+
+        <receiver
+            android:name="com.pravera.flutter_foreground_task.receiver.NotificationDismissedReceiver"
+            android:exported="false"/>
 
         <meta-data android:name="flutterEmbedding" android:value="2"/>
 

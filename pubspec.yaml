@@ -56,7 +56,8 @@ dependencies:
   installed_apps: ^2.1.1
   shared_preferences: ^2.5.5
   rename_app: ^1.6.5
-  app_blocker: ^2.1.0
+  app_blocker:
+    path: ./packages/app_blocker
   awesome_snackbar_content: ^0.1.8
   app_usage: ^4.1.0
   usage_tracker: ^0.1.0
@@ -66,6 +67,8 @@ dependencies:
   styled_drop_down: ^1.0.3
   items_selector: ^2.3.1
   device_policy_manager: ^1.0.0
+  flutter_foreground_task: ^9.2.2
+ 
 
 
 dev_dependencies:

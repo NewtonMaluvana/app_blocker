@@ -1,6 +1,4 @@
-import 'package:app_blocker/app_blocker.dart' hide AppInfo;
 import 'package:block_apps/constants/colors.dart';
-import 'package:block_apps/utils/blocker_service.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';

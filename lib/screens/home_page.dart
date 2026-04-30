@@ -1,10 +1,11 @@
 import 'package:block_apps/components/card.dart';
 import 'package:block_apps/components/card2.dart';
+import 'package:block_apps/components/purchase_button.dart';
 import 'package:block_apps/components/session_card.dart';
 import 'package:block_apps/constants/colors.dart';
 import 'package:block_apps/screens/lock_session_page.dart';
 import 'package:block_apps/screens/strict_mode.dart';
-import 'package:block_apps/utils/permission_handler.dart';
+
 
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -44,29 +45,30 @@ class _HomePageState extends State<HomePage> {
                       direction: Axis.horizontal,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        GestureDetector(
-                          // ✅ CORRECT
-                         
-                          child: Container(
-                            width: 150,
-                            padding: EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                            child: Flex(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              direction: Axis.horizontal,
-                              children: [
-                                Icon(Icons.lock, color: Colors.amber),
-                                Text(
-                                  "Premium",
-                                  style: TextStyle(color: color.colorText),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                        // GestureDetector(
+                        //   // ✅ CORRECT
+
+                        //   child: Container(
+                        //     width: 150,
+                        //     padding: EdgeInsets.all(10),
+                        //     decoration: BoxDecoration(
+                        //       color: Colors.black,
+                        //       borderRadius: BorderRadius.circular(25),
+                        //     ),
+                        //     child: Flex(
+                        //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        //       direction: Axis.horizontal,
+                        //       children: [
+                        //         Icon(Icons.lock, color: Colors.amber),
+                        //         Text(
+                        //           "Premium",
+                        //           style: TextStyle(color: color.colorText),
+                        //         ),
+                        //       ],
+                        //     ),
+                        //   ),
+                        // ),
+                        UpgradeButton()
                       ],
                     ),
                     Flex(
@@ -145,33 +147,29 @@ class _HomePageState extends State<HomePage> {
                                   subtitle: "lock the entire phone",
                                 ),
                               ),
-
-                              CardBox(
-                                Color: color.btnColor,
-                                title: "Anti-Scroll",
-                                icon: Icons.phone_android,
-                                subtitle: "block short videos only",
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const LockSessionPage(),
+                                    ),
+                                  );
+                                },
+                                child: CardBox(
+                                  Color: const Color.fromARGB(255, 224, 169, 5),
+                                  title: "Lock Session",
+                                  icon: Icons.timer,
+                                  subtitle:
+                                      "Control when and which apps are blocked",
+                                ),
                               ),
+
                             ],
                           ),
                           Gap(10),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const LockSessionPage(),
-                                ),
-                              );
-                            },
-                            child: CardBox2(
-                              Color: const Color.fromARGB(255, 224, 169, 5),
-                              title: "Session Mode",
-                              icon: Icons.timer,
-                              subtitle:
-                                  "Controll when and which apps are blocked",
-                            ),
-                          ),
+                         
                         ],
                       ),
                     ),
@@ -179,14 +177,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               //end of the features card row
-              GestureDetector(
-                onTap: () {
-                  showModal(context);
-                },
-                child: Container(
-                  
-                  child: Text("Get permission")),
-              ),
+            
               //start of the session card row
               Padding(
                 padding: const EdgeInsets.only(left: 8.0, top: 30),
