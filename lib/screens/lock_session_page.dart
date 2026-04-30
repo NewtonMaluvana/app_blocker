@@ -32,6 +32,24 @@ class _C {
   static const chipLavender = Color(0xFF6D28D9);
 }
 
+// ─── Always-blocked packages ──────────────────────────────────────────────────
+const _kAlwaysBlocked = {
+  'com.android.settings',
+  'com.google.android.packageinstaller',
+  'com.android.vending',
+  'com.apple.AppStore',
+  'com.miui.securitycenter',
+  'com.samsung.android.settings',
+  'com.huawei.systemmanager',
+  'com.oppo.settings',
+  'com.android.packageinstaller',
+  'com.sec.android.app.launcher',
+  'com.google.android.apps.nexuslauncher',
+  'com.oneplus.settings',
+  'com.asus.settings',
+  'com.sonyericsson.android.settings',
+};
+
 // ─── Benefits ─────────────────────────────────────────────────────────────────
 const _benefits = [
   (Icons.flash_on_rounded,         'Unlimited Daily Blocks',    'Quick-block any time focus slips'),
@@ -78,8 +96,6 @@ class _LockSessionPageState extends State<LockSessionPage>
     if (state == AppLifecycleState.resumed) _checkPermission();
   }
 
-  // ── Premium ────────────────────────────────────────────────────────────────
-
   Future<void> _onBuyPressed() async {
     setState(() => _isBuying = true);
     try {
@@ -98,8 +114,6 @@ class _LockSessionPageState extends State<LockSessionPage>
       if (mounted) setState(() => _isBuying = false);
     }
   }
-
-  // ── Permission ─────────────────────────────────────────────────────────────
 
   Future<void> _checkPermission() async {
     setState(() => _checkingPermission = true);
@@ -127,8 +141,6 @@ class _LockSessionPageState extends State<LockSessionPage>
   }
 
   bool get _granted => _permission == BlockerPermissionStatus.granted;
-
-  // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -183,14 +195,17 @@ class _PremiumGatePage extends StatelessWidget {
                 ),
                 child: const Icon(
                   Icons.workspace_premium_rounded,
-                  color: _C.accent, size: 48,
+                  color: _C.accent,
+                  size: 48,
                 ),
               ),
               const Gap(20),
               Text(
                 'Premium Required',
                 style: GoogleFonts.dmSans(
-                  fontSize: 22, fontWeight: FontWeight.w700, color: _C.text,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: _C.text,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -202,7 +217,6 @@ class _PremiumGatePage extends StatelessWidget {
               ),
               const Gap(28),
 
-              // Benefits card
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
@@ -278,9 +292,11 @@ class _PremiumGatePage extends StatelessWidget {
                             const Icon(Icons.workspace_premium_rounded, size: 20),
                             const SizedBox(width: 10),
                             Text('Unlock Premium',
-                                style: GoogleFonts.dmSans(
-                                  fontSize: 16, fontWeight: FontWeight.w700,
-                                )),
+                              style: GoogleFonts.dmSans(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ],
                         ),
                 ),
@@ -331,7 +347,9 @@ class _PermissionGatePage extends StatelessWidget {
               Text(
                 'Permission Required',
                 style: GoogleFonts.dmSans(
-                  fontSize: 22, fontWeight: FontWeight.w700, color: _C.text,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: _C.text,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -363,7 +381,9 @@ class _PermissionGatePage extends StatelessWidget {
                           Text(
                             'Two permissions needed on Android',
                             style: GoogleFonts.dmSans(
-                              fontSize: 13, fontWeight: FontWeight.w700, color: _C.accent,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: _C.accent,
                             ),
                           ),
                         ],
@@ -397,7 +417,9 @@ class _PermissionGatePage extends StatelessWidget {
                   label: Text(
                     'Grant next permission',
                     style: GoogleFonts.dmSans(
-                      fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
@@ -417,7 +439,9 @@ class _PermissionGatePage extends StatelessWidget {
                   label: Text(
                     'Check permission status',
                     style: GoogleFonts.dmSans(
-                      fontSize: 14, fontWeight: FontWeight.w600, color: _C.accent,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: _C.accent,
                     ),
                   ),
                   style: OutlinedButton.styleFrom(
@@ -461,7 +485,8 @@ class _StatusBadge extends StatelessWidget {
           Text(
             'Status: $label',
             style: TextStyle(
-              fontSize: 13, fontWeight: FontWeight.w600,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
               color: granted ? _C.green : _C.danger,
             ),
           ),
@@ -584,6 +609,7 @@ class _LockSessionContentState extends State<_LockSessionContent> {
     if (picked != null) setState(() => _scheduleDate = picked);
   }
 
+  // ── Always-blocked apps filtered OUT of the visible grid ──────────────────
   Future<void> _getApps() async {
     if (_allApps.isNotEmpty) return;
     setState(() => _loadingApps = true);
@@ -592,7 +618,13 @@ class _LockSessionContentState extends State<_LockSessionContent> {
         excludeSystemApps: false, withIcon: true,
       );
       setState(() {
-        _allApps = list.where((a) => a.name != 'Block Apps').toList();
+        _allApps = list
+            .where(
+              (a) =>
+                  a.name != 'Block Apps' &&
+                  !_kAlwaysBlocked.contains(a.packageName),
+            )
+            .toList();
         _filteredApps = List.from(_allApps);
         _loadingApps = false;
       });
@@ -601,6 +633,7 @@ class _LockSessionContentState extends State<_LockSessionContent> {
     }
   }
 
+  // ── Submit — always merges in the always-blocked set ─────────────────────
   Future<void> _submit() async {
     final name = _sessionNameController.text.trim();
     if (name.isEmpty) { _snack('Please enter a session name'); return; }
@@ -611,6 +644,9 @@ class _LockSessionContentState extends State<_LockSessionContent> {
     final endMinutes = _end.hour * 60 + _end.minute;
     if (endMinutes <= startMinutes) { _snack('End time must be after start time'); return; }
 
+    // Merge user selection + always-blocked
+    final allPackages = {..._selectedPackages, ..._kAlwaysBlocked}.toList();
+
     await BlockService.blocker2.addSchedule(
       BlockSchedule(
         enabled: true,
@@ -618,7 +654,7 @@ class _LockSessionContentState extends State<_LockSessionContent> {
         id: 'sessionmode',
         name: name,
         scheduleDate: _isOneTime ? _scheduleDate : null,
-        appIdentifiers: _selectedPackages.toList(),
+        appIdentifiers: allPackages,
         startTime: _start,
         endTime: _end,
       ),
@@ -693,7 +729,47 @@ class _LockSessionContentState extends State<_LockSessionContent> {
                   ),
                   const SizedBox(height: 14),
                   Text('SELECT APPS TO BLOCK', style: _mono(size: 11, color: _C.muted)),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
+
+                  // ── Always-blocked notice inside modal ───────────────────
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _C.dangerSoft,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: _C.dangerBorder, width: .8),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.lock_outline,
+                            color: _C.danger,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Settings & App Stores are always blocked and hidden',
+                              style: TextStyle(
+                                fontFamily: 'monospace',
+                                fontSize: 10,
+                                color: _C.danger,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: TextField(
@@ -922,8 +998,10 @@ class _LockSessionContentState extends State<_LockSessionContent> {
                   child: const Text(
                     'Custom block list',
                     style: TextStyle(
-                      fontFamily: 'monospace', fontSize: 11,
-                      color: _C.green, fontWeight: FontWeight.w700,
+                      fontFamily: 'monospace',
+                      fontSize: 11,
+                      color: _C.green,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -1019,7 +1097,8 @@ class _LockSessionContentState extends State<_LockSessionContent> {
             child: Text(
               _dayLabels[i],
               style: TextStyle(
-                fontFamily: 'monospace', fontSize: 12,
+                fontFamily: 'monospace',
+                fontSize: 12,
                 color: on ? _C.chipLavender : _C.muted,
                 fontWeight: on ? FontWeight.w700 : FontWeight.normal,
               ),
@@ -1103,6 +1182,7 @@ class _LockSessionContentState extends State<_LockSessionContent> {
     final selectedApps = _allApps
         .where((a) => _selectedPackages.contains(a.packageName))
         .toList();
+
     return _Card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1129,7 +1209,39 @@ class _LockSessionContentState extends State<_LockSessionContent> {
               ),
             ],
           ),
+          const SizedBox(height: 10),
+
+          // ── Always-blocked banner ──────────────────────────────────────
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: _C.dangerSoft,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: _C.dangerBorder, width: .8),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.lock_outline, color: _C.danger, size: 14),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Settings & App Stores are always blocked during sessions',
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 10,
+                      color: _C.danger,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           const SizedBox(height: 12),
+
+          // ── User-selected apps ─────────────────────────────────────────
           _selectedPackages.isEmpty
               ? Container(
                   width: double.infinity,
@@ -1169,7 +1281,10 @@ class _LockSessionContentState extends State<_LockSessionContent> {
                           const SizedBox(height: 4),
                           Text(
                             app.name ?? '',
-                            style: const TextStyle(fontSize: 9, color: _C.muted),
+                            style: const TextStyle(
+                              fontSize: 9,
+                              color: _C.muted,
+                            ),
                             textAlign: TextAlign.center,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -1198,7 +1313,9 @@ class _LockSessionContentState extends State<_LockSessionContent> {
         child: Text(
           'Add Session',
           style: GoogleFonts.dmSans(
-            fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
           ),
         ),
       ),

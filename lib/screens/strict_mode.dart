@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:app_blocker/app_blocker.dart' hide AppInfo;
+import 'package:block_apps/services/premium_service.dart';
 import 'package:block_apps/utils/blocker_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,8 +9,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-// ─── Design tokens (light purple theme) ──────────────────────────────────────
+// ─── Design tokens ────────────────────────────────────────────────────────────
 class _C {
   static const bg = Color(0xFFF5F3FF);
   static const surface = Color(0xFFFFFFFF);
@@ -26,10 +29,19 @@ class _C {
   static const muted = Color(0xFF8B85C1);
   static const danger = Color(0xFFDC2626);
   static const dangerSoft = Color(0xFFFEE2E2);
+  static const amber = Color(0xFFD97706);
+  static const amberSoft = Color(0xFFFEF3C7);
+  static const amberBorder = Color(0xFFFCD34D);
 }
 
+// ─── Free tier limits ─────────────────────────────────────────────────────────
+const _kFreeMaxMinutes = 15;
+const _kFreeDailyLimit = 2;
+const _kSessionCountKey = 'strict_session_count';
+const _kSessionDateKey = 'strict_session_date';
+
 // ─────────────────────────────────────────────────────────────────────────────
-// Entry point — gates the real page behind permission
+// Entry point
 // ─────────────────────────────────────────────────────────────────────────────
 
 class StrictModePage extends StatefulWidget {
@@ -41,7 +53,6 @@ class StrictModePage extends StatefulWidget {
 
 class _StrictModePageState extends State<StrictModePage>
     with WidgetsBindingObserver {
-  // ── permission state ────────────────────────────────────────────────────────
   final _blocker = AppBlocker.instance;
   BlockerPermissionStatus? _permission;
   bool _checkingPermission = true;
@@ -59,7 +70,6 @@ class _StrictModePageState extends State<StrictModePage>
     super.dispose();
   }
 
-  /// Re-check when user comes back from the Settings screen.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) _checkPermission();
@@ -92,7 +102,6 @@ class _StrictModePageState extends State<StrictModePage>
 
   bool get _granted => _permission == BlockerPermissionStatus.granted;
 
-  // ── build ───────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     if (_checkingPermission) {
@@ -102,7 +111,6 @@ class _StrictModePageState extends State<StrictModePage>
       );
     }
 
-    // Show permission gate if not granted
     if (!_granted) {
       return _PermissionGatePage(
         permissionStatus: _permission,
@@ -111,13 +119,12 @@ class _StrictModePageState extends State<StrictModePage>
       );
     }
 
-    // Permission granted — show the real page
     return const _StrictModeContent();
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Permission gate page
+// Permission gate
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _PermissionGatePage extends StatelessWidget {
@@ -141,7 +148,6 @@ class _PermissionGatePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Lock illustration
               Container(
                 width: 96,
                 height: 96,
@@ -153,7 +159,6 @@ class _PermissionGatePage extends StatelessWidget {
                 child: const Icon(Icons.lock_outline, color: _C.red, size: 48),
               ),
               const SizedBox(height: 24),
-
               Text(
                 'Permission Required',
                 style: GoogleFonts.dmSans(
@@ -174,12 +179,8 @@ class _PermissionGatePage extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 28),
-
-              // Status badge
               _StatusBadge(status: permissionStatus),
               const SizedBox(height: 20),
-
-              // Android extra hint
               if (Platform.isAndroid)
                 Container(
                   width: double.infinity,
@@ -225,8 +226,7 @@ class _PermissionGatePage extends StatelessWidget {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'Tap "Grant next" repeatedly until both are enabled, '
-                        'then come back here.',
+                        'Tap "Grant next" repeatedly until both are enabled, then come back here.',
                         style: GoogleFonts.dmSans(
                           fontSize: 12,
                           color: _C.muted,
@@ -236,10 +236,7 @@ class _PermissionGatePage extends StatelessWidget {
                     ],
                   ),
                 ),
-
               const SizedBox(height: 24),
-
-              // Buttons
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -306,7 +303,6 @@ class _StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final granted = status == BlockerPermissionStatus.granted;
     final label = status == null ? 'Checking…' : status!.name;
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
@@ -343,9 +339,7 @@ class _PermStep extends StatelessWidget {
     required this.label,
     required this.desc,
   });
-  final String number;
-  final String label;
-  final String desc;
+  final String number, label, desc;
 
   @override
   Widget build(BuildContext context) {
@@ -396,7 +390,7 @@ class _PermStep extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// The actual Strict Mode content (only shown after permission is granted)
+// Strict Mode content
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _StrictModeContent extends StatefulWidget {
@@ -411,8 +405,17 @@ class _StrictModeContentState extends State<_StrictModeContent> {
   final TextEditingController _hoursCtrl = TextEditingController();
   final TextEditingController _minutesCtrl = TextEditingController();
 
+  final _premium = PremiumService.instance;
+
   List<AppInfo> _allApps = [];
   bool _loading = false;
+  int _todaySessionCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTodayCount();
+  }
 
   @override
   void dispose() {
@@ -422,7 +425,42 @@ class _StrictModeContentState extends State<_StrictModeContent> {
     super.dispose();
   }
 
-  // ── helpers ─────────────────────────────────────────────────────────────────
+  // ── Daily session counter ──────────────────────────────────────────────────
+
+  Future<void> _loadTodayCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedDate = prefs.getString(_kSessionDateKey) ?? '';
+    final today = _todayStr();
+
+    if (savedDate != today) {
+      // New day — reset counter
+      await prefs.setString(_kSessionDateKey, today);
+      await prefs.setInt(_kSessionCountKey, 0);
+      if (mounted) setState(() => _todaySessionCount = 0);
+    } else {
+      final count = prefs.getInt(_kSessionCountKey) ?? 0;
+      if (mounted) setState(() => _todaySessionCount = count);
+    }
+  }
+
+  Future<void> _incrementTodayCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    final newCount = _todaySessionCount + 1;
+    await prefs.setInt(_kSessionCountKey, newCount);
+    await prefs.setString(_kSessionDateKey, _todayStr());
+    if (mounted) setState(() => _todaySessionCount = newCount);
+  }
+
+  String _todayStr() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month}-${now.day}';
+  }
+
+  bool get _dailyLimitReached =>
+      !_premium.isPremium && _todaySessionCount >= _kFreeDailyLimit;
+
+  // ── helpers ────────────────────────────────────────────────────────────────
+
   TextStyle _mono({
     double size = 13,
     Color? color,
@@ -434,7 +472,8 @@ class _StrictModeContentState extends State<_StrictModeContent> {
     fontWeight: fw,
   );
 
-  // ── apps ─────────────────────────────────────────────────────────────────────
+  // ── apps ───────────────────────────────────────────────────────────────────
+
   Future<void> _getApps() async {
     setState(() => _loading = true);
     try {
@@ -451,7 +490,8 @@ class _StrictModeContentState extends State<_StrictModeContent> {
     }
   }
 
-  // ── block ────────────────────────────────────────────────────────────────────
+  // ── block ──────────────────────────────────────────────────────────────────
+
   Future<void> _blockApps() async {
     await _getApps();
     final packages = _allApps
@@ -479,6 +519,8 @@ class _StrictModeContentState extends State<_StrictModeContent> {
       ),
     );
 
+    await _incrementTodayCount();
+
     _hoursCtrl.clear();
     _minutesCtrl.clear();
     _nameCtrl.clear();
@@ -494,10 +536,29 @@ class _StrictModeContentState extends State<_StrictModeContent> {
     } catch (_) {}
   }
 
-  // ── validation + confirm dialog ──────────────────────────────────────────────
+  // ── show paywall ───────────────────────────────────────────────────────────
+
+  Future<void> _showPaywall() async {
+    final result = await RevenueCatUI.presentPaywall();
+    if (!mounted) return;
+    if (result == PaywallResult.purchased || result == PaywallResult.restored) {
+      await _premium.setPremium(true);
+      if (mounted) setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Welcome to Premium!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
+  // ── validation ─────────────────────────────────────────────────────────────
+
   void _onStartPressed() {
     final hours = int.tryParse(_hoursCtrl.text) ?? 0;
     final minutes = int.tryParse(_minutesCtrl.text) ?? 0;
+    final totalMinutes = hours * 60 + minutes;
 
     if (_nameCtrl.text.trim().isEmpty ||
         _hoursCtrl.text.isEmpty ||
@@ -510,8 +571,34 @@ class _StrictModeContentState extends State<_StrictModeContent> {
       return;
     }
 
+    // ── Free tier: daily limit check ──────────────────────────────────────
+    if (_dailyLimitReached) {
+      _showLimitDialog(
+        title: 'Daily Limit Reached',
+        icon: Icons.today_rounded,
+        message:
+            'Free users can only start $_kFreeDailyLimit strict sessions per day. '
+            'Upgrade to Premium for unlimited daily sessions.',
+      );
+      return;
+    }
+
+    // ── Free tier: duration check ─────────────────────────────────────────
+    if (!_premium.isPremium && totalMinutes > _kFreeMaxMinutes) {
+      _showLimitDialog(
+        title: 'Duration Limit Reached',
+        icon: Icons.hourglass_bottom_rounded,
+        message:
+            'Free users can only block for up to $_kFreeMaxMinutes minutes. '
+            'Upgrade to Premium for unlimited duration.',
+      );
+      return;
+    }
+
+    // ── All good — show confirm dialog ────────────────────────────────────
     final durText =
-        '${hours > 0 ? '$hours hr ' : ''}${minutes > 0 ? '$minutes min' : ''}';
+        '${hours > 0 ? '$hours hr ' : ''}${minutes > 0 ? '$minutes min' : ''}'
+            .trim();
 
     showDialog(
       context: context,
@@ -657,7 +744,130 @@ class _StrictModeContentState extends State<_StrictModeContent> {
     );
   }
 
-  // ── snackbar ─────────────────────────────────────────────────────────────────
+  // ── Premium limit dialog ───────────────────────────────────────────────────
+
+  void _showLimitDialog({
+    required String title,
+    required IconData icon,
+    required String message,
+  }) {
+    showDialog(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        backgroundColor: _C.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+        contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+        actionsPadding: const EdgeInsets.all(16),
+        title: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: _C.amberSoft,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: _C.amber, size: 18),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                title,
+                style: GoogleFonts.dmSans(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: _C.text,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Text(
+              message,
+              style: GoogleFonts.dmSans(
+                fontSize: 14,
+                color: _C.muted,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Benefits preview
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: _C.accentSoft,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: _C.border, width: .8),
+              ),
+              child: Column(
+                children: [
+                  _BenefitRow(
+                    Icons.hourglass_bottom_rounded,
+                    'Unlimited Duration',
+                  ),
+                  const SizedBox(height: 8),
+                  _BenefitRow(Icons.today_rounded, 'Unlimited Daily Sessions'),
+                  const SizedBox(height: 8),
+                  _BenefitRow(Icons.flash_on_rounded, 'Unlimited Quick Blocks'),
+                  const SizedBox(height: 8),
+                  _BenefitRow(Icons.apps_rounded, 'Unlimited App Blocking'),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(dCtx),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: _C.border),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            child: Text(
+              'Not now',
+              style: GoogleFonts.dmSans(
+                color: _C.muted,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pop(dCtx);
+              _showPaywall();
+            },
+            icon: const Icon(Icons.workspace_premium_rounded, size: 16),
+            label: Text(
+              'Unlock Premium',
+              style: GoogleFonts.dmSans(fontWeight: FontWeight.w700),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _C.accent,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── snackbar ───────────────────────────────────────────────────────────────
+
   void _snack(String msg, {bool success = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -693,7 +903,8 @@ class _StrictModeContentState extends State<_StrictModeContent> {
     );
   }
 
-  // ── input decoration ─────────────────────────────────────────────────────────
+  // ── input decoration ───────────────────────────────────────────────────────
+
   InputDecoration _inputDeco(String hint, {Widget? suffix}) => InputDecoration(
     hintText: hint,
     hintStyle: const TextStyle(color: _C.muted, fontSize: 14),
@@ -715,7 +926,8 @@ class _StrictModeContentState extends State<_StrictModeContent> {
     ),
   );
 
-  // ── build ─────────────────────────────────────────────────────────────────────
+  // ── build ──────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -728,6 +940,13 @@ class _StrictModeContentState extends State<_StrictModeContent> {
             children: [
               _buildHeader(),
               const SizedBox(height: 12),
+
+              // Free tier usage banner
+              if (!_premium.isPremium) ...[
+                _buildFreeBanner(),
+                const SizedBox(height: 10),
+              ],
+
               _buildNameCard(),
               const SizedBox(height: 10),
               _buildDurationCard(),
@@ -739,6 +958,73 @@ class _StrictModeContentState extends State<_StrictModeContent> {
               _buildStartButton(),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  // ── Free usage banner ──────────────────────────────────────────────────────
+
+  Widget _buildFreeBanner() {
+    final remaining = (_kFreeDailyLimit - _todaySessionCount).clamp(
+      0,
+      _kFreeDailyLimit,
+    );
+    final isExhausted = remaining == 0;
+
+    return GestureDetector(
+      onTap: _showPaywall,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isExhausted ? _C.redSoft : _C.amberSoft,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isExhausted ? _C.redBorder : _C.amberBorder,
+            width: .8,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              isExhausted ? Icons.block_rounded : Icons.info_outline_rounded,
+              color: isExhausted ? _C.red : _C.amber,
+              size: 18,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isExhausted
+                        ? 'Daily limit reached'
+                        : '$remaining session${remaining == 1 ? '' : 's'} left today',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: isExhausted ? _C.red : _C.amber,
+                    ),
+                  ),
+                  Text(
+                    isExhausted
+                        ? 'Upgrade to Premium for unlimited sessions'
+                        : 'Free: max $_kFreeMaxMinutes min · $_kFreeDailyLimit sessions/day · Tap to upgrade',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 11,
+                      color: isExhausted ? _C.red : _C.amber,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: isExhausted ? _C.red : _C.amber,
+              size: 18,
+            ),
+          ],
         ),
       ),
     );
@@ -842,11 +1128,43 @@ class _StrictModeContentState extends State<_StrictModeContent> {
   }
 
   Widget _buildDurationCard() {
+    final hours = int.tryParse(_hoursCtrl.text) ?? 0;
+    final minutes = int.tryParse(_minutesCtrl.text) ?? 0;
+    final totalMinutes = hours * 60 + minutes;
+    final overLimit = !_premium.isPremium && totalMinutes > _kFreeMaxMinutes;
+
     return _Card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _Label('Session Duration'),
+          Row(
+            children: [
+              const _Label('Session Duration'),
+              if (!_premium.isPremium) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _C.amberSoft,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: _C.amberBorder, width: .8),
+                  ),
+                  child: Text(
+                    'Max $_kFreeMaxMinutes min',
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 9,
+                      color: _C.amber,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -858,8 +1176,20 @@ class _StrictModeContentState extends State<_StrictModeContent> {
                     decimal: false,
                   ),
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  style: const TextStyle(color: _C.text, fontSize: 15),
-                  decoration: _inputDeco('Hours'),
+                  style: TextStyle(
+                    color: overLimit ? _C.red : _C.text,
+                    fontSize: 15,
+                  ),
+                  onChanged: (_) => setState(() {}),
+                  decoration: _inputDeco('Hours').copyWith(
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: overLimit ? _C.redBorder : _C.border,
+                        width: .8,
+                      ),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -871,57 +1201,95 @@ class _StrictModeContentState extends State<_StrictModeContent> {
                     decimal: false,
                   ),
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  style: const TextStyle(color: _C.text, fontSize: 15),
-                  decoration: _inputDeco('Minutes'),
+                  style: TextStyle(
+                    color: overLimit ? _C.red : _C.text,
+                    fontSize: 15,
+                  ),
+                  onChanged: (_) => setState(() {}),
+                  decoration: _inputDeco('Minutes').copyWith(
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: overLimit ? _C.redBorder : _C.border,
+                        width: .8,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 10),
-          ValueListenableBuilder(
-            valueListenable: _hoursCtrl,
-            builder: (_, _, _) => ValueListenableBuilder(
-              valueListenable: _minutesCtrl,
-              builder: (_, _, _) {
-                final h = int.tryParse(_hoursCtrl.text) ?? 0;
-                final m = int.tryParse(_minutesCtrl.text) ?? 0;
-                if (h == 0 && m == 0) return const SizedBox.shrink();
-                final label = '${h > 0 ? '$h hr ' : ''}${m > 0 ? '$m min' : ''}'
-                    .trim();
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _C.accentSoft,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: _C.border, width: .8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.timer_outlined,
-                        size: 14,
-                        color: _C.accent,
+
+          // Duration pill or over-limit warning
+          if (totalMinutes > 0)
+            overLimit
+                ? GestureDetector(
+                    onTap: _showPaywall,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Block for $label',
-                        style: TextStyle(
-                          fontFamily: 'monospace',
-                          fontSize: 12,
+                      decoration: BoxDecoration(
+                        color: _C.redSoft,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: _C.redBorder, width: .8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.lock_outline,
+                            size: 14,
+                            color: _C.red,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Over $_kFreeMaxMinutes min limit — tap to upgrade',
+                            style: TextStyle(
+                              fontFamily: 'monospace',
+                              fontSize: 11,
+                              color: _C.red,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _C.accentSoft,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: _C.border, width: .8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.timer_outlined,
+                          size: 14,
                           color: _C.accent,
-                          fontWeight: FontWeight.w700,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 6),
+                        Text(
+                          'Block for ${hours > 0 ? '$hours hr ' : ''}${minutes > 0 ? '$minutes min' : ''}'
+                              .trim(),
+                          style: TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: 12,
+                            color: _C.accent,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                );
-              },
-            ),
-          ),
         ],
       ),
     );
@@ -1013,13 +1381,24 @@ class _StrictModeContentState extends State<_StrictModeContent> {
   }
 
   Widget _buildStartButton() {
+    final isDisabled = _loading || _dailyLimitReached;
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: _loading ? null : _onStartPressed,
+        onPressed: isDisabled
+            ? (_dailyLimitReached
+                  ? () => _showLimitDialog(
+                      title: 'Daily Limit Reached',
+                      icon: Icons.today_rounded,
+                      message:
+                          'Free users can only start $_kFreeDailyLimit strict sessions per day. '
+                          'Upgrade to Premium for unlimited daily sessions.',
+                    )
+                  : null)
+            : _onStartPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: _C.red,
-          disabledBackgroundColor: _C.redSoft,
+          backgroundColor: _dailyLimitReached ? _C.redSoft : _C.red,
+          disabledBackgroundColor: _dailyLimitReached ? _C.redSoft : _C.redSoft,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
@@ -1038,19 +1417,55 @@ class _StrictModeContentState extends State<_StrictModeContent> {
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.lock_outline, size: 18, color: Colors.white),
+                  Icon(
+                    _dailyLimitReached
+                        ? Icons.lock_outline
+                        : Icons.lock_outline,
+                    size: 18,
+                    color: _dailyLimitReached ? _C.red : Colors.white,
+                  ),
                   const SizedBox(width: 8),
                   Text(
-                    'Start Strict Block',
+                    _dailyLimitReached
+                        ? 'Limit reached — Upgrade'
+                        : 'Start Strict Block',
                     style: GoogleFonts.dmSans(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: _dailyLimitReached ? _C.red : Colors.white,
                     ),
                   ),
                 ],
               ),
       ),
+    );
+  }
+}
+
+// ─── Benefit row (used in limit dialog) ───────────────────────────────────────
+
+class _BenefitRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _BenefitRow(this.icon, this.label);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: _C.accent, size: 16),
+        const SizedBox(width: 10),
+        Text(
+          label,
+          style: GoogleFonts.dmSans(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: _C.text,
+          ),
+        ),
+        const Spacer(),
+        const Icon(Icons.check_circle_rounded, color: _C.green, size: 16),
+      ],
     );
   }
 }

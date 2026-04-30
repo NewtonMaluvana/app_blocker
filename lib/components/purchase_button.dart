@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:block_apps/services/premium_service.dart';
 
 class UpgradeButton extends StatefulWidget {
   const UpgradeButton({super.key});
@@ -12,49 +11,7 @@ class UpgradeButton extends StatefulWidget {
 
 class _UpgradeButtonState extends State<UpgradeButton> {
   bool _isLoading = false;
-  bool _isPremium = false;
-
-  static const String _premiumKey = 'is_premium';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadPremiumStatus();
-  }
-
-  // 1️⃣ Load from local cache instantly (no flicker)
-  Future<void> _loadPremiumStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    final cached = prefs.getBool(_premiumKey) ?? false;
-    if (mounted) setState(() => _isPremium = cached);
-
-    // Then verify with RevenueCat in background
-    _verifyWithRevenueCat();
-  }
-
-  // 2️⃣ Verify against RevenueCat and update cache
-  Future<void> _verifyWithRevenueCat() async {
-    try {
-      final customerInfo = await Purchases.getCustomerInfo();
-      final isPremium = customerInfo.entitlements.active.containsKey("premium");
-
-      // Save to cache
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_premiumKey, isPremium);
-
-      if (mounted) setState(() => _isPremium = isPremium);
-    } catch (e) {
-      debugPrint('RevenueCat check failed: $e');
-      // Keep showing cached value if network fails
-    }
-  }
-
-  // 3️⃣ Save premium after successful purchase
-  Future<void> _savePremium() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_premiumKey, true);
-    if (mounted) setState(() => _isPremium = true);
-  }
+  final _premium = PremiumService.instance;
 
   Future<void> _onUpgradePressed() async {
     setState(() => _isLoading = true);
@@ -65,7 +22,7 @@ class _UpgradeButtonState extends State<UpgradeButton> {
       if (!mounted) return;
 
       if (result == PaywallResult.purchased || result == PaywallResult.restored) {
-        await _savePremium(); // ← persist it
+        await _premium.setPremium(true);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -73,6 +30,7 @@ class _UpgradeButtonState extends State<UpgradeButton> {
             backgroundColor: Colors.green,
           ),
         );
+        setState(() {});
       }
     } catch (e) {
       if (!mounted) return;
@@ -87,7 +45,7 @@ class _UpgradeButtonState extends State<UpgradeButton> {
   @override
   Widget build(BuildContext context) {
     // ── Premium state ──
-    if (_isPremium) {
+    if (_premium.isPremium) {
       return ElevatedButton.icon(
         onPressed: null,
         style: ElevatedButton.styleFrom(
